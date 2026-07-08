@@ -1,25 +1,56 @@
 function Features() {
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-6xl mx-auto text-center">
+    <section id="features" className="py-20 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6">
 
-        <h2 className="text-4xl font-bold mb-10">Features</h2>
+        <h2 className="text-4xl font-bold text-center mb-3">
+          Powerful Features
+        </h2>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <p className="text-center text-gray-500 mb-12">
+          Everything you need inside one smart building platform.
+        </p>
 
-          <div className="shadow-lg p-6 rounded-xl">
-            <h3 className="text-2xl font-bold mb-3">Navigation</h3>
-            <p>Find offices, meeting rooms and departments easily.</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition">
+            <h3 className="text-xl font-bold mb-3">
+              Office Directory
+            </h3>
+
+            <p className="text-gray-600">
+              Search departments, offices, meeting rooms and facilities instantly.
+            </p>
           </div>
 
-          <div className="shadow-lg p-6 rounded-xl">
-            <h3 className="text-2xl font-bold mb-3">Live Chat</h3>
-            <p>Talk with employees and visitors instantly.</p>
+          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition">
+            <h3 className="text-xl font-bold mb-3">
+              Indoor Navigation
+            </h3>
+
+            <p className="text-gray-600">
+              Get simple floor-by-floor directions to your destination.
+            </p>
           </div>
 
-          <div className="shadow-lg p-6 rounded-xl">
-            <h3 className="text-2xl font-bold mb-3">AI Assistant</h3>
-            <p>Get answers to common building questions.</p>
+          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition">
+            <h3 className="text-xl font-bold mb-3">
+              Real-Time Chat
+            </h3>
+
+            <p className="text-gray-600">
+              Connect with visitors and employees inside the building.
+            </p>
+          </div>
+
+          <div className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition">
+            <h3 className="text-xl font-bold mb-3">
+              AI Assistant
+            </h3>
+
+            <p className="text-gray-600">
+              Ask building-related questions and get instant answers.
+            </p>
           </div>
 
         </div>

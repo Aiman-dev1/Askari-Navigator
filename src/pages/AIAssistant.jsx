@@ -7,18 +7,23 @@ function AIAssistant() {
   const [answer, setAnswer] = useState("");
 
   const askQuestion = () => {
-    const userQuestion = question.toLowerCase().trim();
+  if (!question.trim()) {
+    setAnswer("Please enter a question.");
+    return;
+  }
 
-    const found = faqs.find(
-      (faq) => faq.question === userQuestion
-    );
+  const userQuestion = question.toLowerCase().trim();
 
-    if (found) {
-      setAnswer(found.answer);
-    } else {
-      setAnswer("I don't know. Please contact the Building Reception.");
-    }
-  };
+  const found = faqs.find((faq) =>
+    userQuestion.includes(faq.question.toLowerCase())
+  );
+
+  if (found) {
+    setAnswer(found.answer);
+  } else {
+    setAnswer("I don't know.");
+  }
+};
 
   return (
     <MainLayout>

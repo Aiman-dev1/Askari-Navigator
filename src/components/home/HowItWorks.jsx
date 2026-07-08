@@ -1,28 +1,73 @@
 function HowItWorks() {
   return (
-    <section className="bg-slate-100 py-20">
+    <section className="py-20 bg-slate-100">
 
-      <div className="max-w-6xl mx-auto text-center">
+      <div className="max-w-7xl mx-auto px-6">
 
-        <h2 className="text-4xl font-bold mb-10">
+        <h2 className="text-4xl font-bold text-center mb-3">
           How It Works
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <p className="text-center text-gray-500 mb-12">
+          Find your destination in just a few simple steps.
+        </p>
 
-          <div>
-            <h3 className="text-xl font-bold">1. Search</h3>
-            <p>Search any office or department.</p>
+        <div className="grid md:grid-cols-4 gap-6">
+
+          <div className="bg-white p-6 rounded-xl shadow">
+            <div className="text-3xl font-bold text-cyan-600 mb-3">
+              1
+            </div>
+
+            <h3 className="text-xl font-bold mb-2">
+              Search
+            </h3>
+
+            <p className="text-gray-600">
+              Search for any office, department or meeting room.
+            </p>
           </div>
 
-          <div>
-            <h3 className="text-xl font-bold">2. Navigate</h3>
-            <p>Follow indoor directions.</p>
+          <div className="bg-white p-6 rounded-xl shadow">
+            <div className="text-3xl font-bold text-cyan-600 mb-3">
+              2
+            </div>
+
+            <h3 className="text-xl font-bold mb-2">
+              Navigate
+            </h3>
+
+            <p className="text-gray-600">
+              Follow indoor directions to reach your destination.
+            </p>
           </div>
 
-          <div>
-            <h3 className="text-xl font-bold">3. Chat</h3>
-            <p>Connect with people in the building.</p>
+          <div className="bg-white p-6 rounded-xl shadow">
+            <div className="text-3xl font-bold text-cyan-600 mb-3">
+              3
+            </div>
+
+            <h3 className="text-xl font-bold mb-2">
+              Chat
+            </h3>
+
+            <p className="text-gray-600">
+              Connect instantly with employees and visitors.
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow">
+            <div className="text-3xl font-bold text-cyan-600 mb-3">
+              4
+            </div>
+
+            <h3 className="text-xl font-bold mb-2">
+              AI Assistant
+            </h3>
+
+            <p className="text-gray-600">
+              Get instant answers to building-related questions.
+            </p>
           </div>
 
         </div>

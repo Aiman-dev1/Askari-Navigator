@@ -1,26 +1,43 @@
+import { Link } from "react-router-dom";
+
 function Hero() {
+  const scrollToFeatures = () => {
+    const section = document.getElementById("features");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="bg-slate-900 text-white min-h-[90vh] flex items-center justify-center">
-      <div className="text-center px-6">
+      <div className="text-center px-6 max-w-4xl">
 
-        {/* Main Heading */}
-        <h1 className="text-5xl font-bold">
+        <p className="text-cyan-400 font-semibold mb-3">
+          Smart Building Management Platform
+        </p>
+
+        <h1 className="text-6xl font-bold leading-tight">
           TowerNav & Chat
         </h1>
 
-        {/* Subtitle */}
-        <p className="mt-5 text-gray-300 text-lg">
-          Smart Indoor Navigation & Real-Time Chat
+        <p className="mt-6 text-gray-300 text-xl">
+          Navigate your building, discover offices, chat with people,
+          and get instant answers from the AI Assistant.
         </p>
 
-        {/* Buttons */}
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-10 flex justify-center gap-5">
 
-          <button className="bg-cyan-500 hover:bg-cyan-600 px-6 py-3 rounded-lg">
+          <Link
+            to="/login"
+            className="bg-cyan-500 hover:bg-cyan-600 px-7 py-3 rounded-lg font-semibold transition"
+          >
             Get Started
-          </button>
+          </Link>
 
-          <button className="border border-white px-6 py-3 rounded-lg hover:bg-white hover:text-black">
+          <button
+            onClick={scrollToFeatures}
+            className="border border-white hover:bg-white hover:text-slate-900 px-7 py-3 rounded-lg font-semibold transition"
+          >
             Learn More
           </button>
 

@@ -1,6 +1,20 @@
+import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 
 function Profile() {
+  const [profile, setProfile] = useState({
+    name: "Guest User",
+    username: "ShadowWalker42",
+    building: "Apex Tower",
+  });
+
+  const handleChange = (e) => {
+    setProfile({
+      ...profile,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   return (
     <MainLayout>
       <div className="max-w-xl mx-auto p-10">
@@ -9,13 +23,47 @@ function Profile() {
           My Profile
         </h1>
 
-        <div className="bg-white shadow-lg rounded-xl p-6">
+        <div className="bg-white shadow-lg rounded-xl p-6 space-y-4">
 
-          <p><b>Name:</b> Guest User</p>
+          <div>
+            <label className="font-bold">Name</label>
 
-          <p className="mt-3"><b>Username:</b> ShadowWalker42</p>
+            <input
+              type="text"
+              name="name"
+              value={profile.name}
+              onChange={handleChange}
+              className="w-full border p-3 rounded mt-2"
+            />
+          </div>
 
-          <p className="mt-3"><b>Building:</b> Apex Tower</p>
+          <div>
+            <label className="font-bold">Username</label>
+
+            <input
+              type="text"
+              name="username"
+              value={profile.username}
+              onChange={handleChange}
+              className="w-full border p-3 rounded mt-2"
+            />
+          </div>
+
+          <div>
+            <label className="font-bold">Building</label>
+
+            <input
+              type="text"
+              name="building"
+              value={profile.building}
+              onChange={handleChange}
+              className="w-full border p-3 rounded mt-2"
+            />
+          </div>
+
+          <button className="bg-cyan-600 text-white px-6 py-3 rounded-lg">
+            Save Changes
+          </button>
 
         </div>
 

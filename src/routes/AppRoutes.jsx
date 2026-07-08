@@ -10,10 +10,6 @@ import Navigation from "../pages/Navigation";
 import Chat from "../pages/Chat";
 import AIAssistant from "../pages/AIAssistant";
 import Profile from "../pages/Profile";
-import ManageOffices from "../pages/ManageOffices";
-import ManageFAQs from "../pages/ManageFAQs";
-import FloorMaps from "../pages/FloorMaps";
-import ChatModeration from "../pages/ChatModeration";
 
 function AppRoutes() {
   return (
@@ -28,10 +24,7 @@ function AppRoutes() {
       <Route path="/chat" element={<Chat />} />
       <Route path="/ai" element={<AIAssistant />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/manage-offices" element={<ManageOffices />} />
-      <Route path="/manage-faqs" element={<ManageFAQs />} />
-      <Route path="/floor-maps" element={<FloorMaps />} />
-      <Route path="/chat-moderation" element={<ChatModeration />} />
+      
     </Routes>
   );
 }
