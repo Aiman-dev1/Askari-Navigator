@@ -53,7 +53,7 @@ function Navbar({ isHome }) {
 
           <Link to="/user">Dashboard</Link>
 
-          <Link to="/directory">Directory</Link>
+          {/* <Link to="/directory">Directory</Link> */}
 
           <Link to="/navigation">Navigation</Link>
 

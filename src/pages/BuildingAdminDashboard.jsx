@@ -301,7 +301,7 @@ className="border p-3 rounded w-full"
 />
 
 <p className="text-gray-500 mt-3">
-Only UI for presentation.
+Only UI for testing.
 </p>
 
 </div>
@@ -346,7 +346,7 @@ Reported
 
 <tr>
 
-<td className="p-3">Aiman</td>
+<td className="p-3">Ali</td>
 
 <td>Hello Everyone</td>
 
