@@ -13,10 +13,12 @@ function Navbar() {
       <div className="flex gap-6">
 
         <Link to="/">Home</Link>
-
         <Link to="/login">Login</Link>
-
         <Link to="/register">Register</Link>
+        <Link to="/directory">Directory</Link>
+        <Link to="/navigation">Navigation</Link>
+        <Link to="/chat">Chat</Link>
+        <Link to="/ai">AI</Link>
 
       </div>
 

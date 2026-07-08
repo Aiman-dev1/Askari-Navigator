@@ -1,30 +1,48 @@
 import MainLayout from "../components/layout/MainLayout";
-import DashboardHeader from "../components/dashboard/DashboardHeader";
-import DashboardCard from "../components/dashboard/DashboardCard";
+import { Link } from "react-router-dom";
 
 function BuildingAdminDashboard() {
   return (
     <MainLayout>
-      <div className="p-10">
+      <div className="max-w-6xl mx-auto p-10">
 
-        <DashboardHeader title="Building Admin Dashboard" />
+        <h1 className="text-4xl font-bold mb-8">
+          Building Admin Dashboard
+        </h1>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
 
-          <DashboardCard
-            title="Manage Offices"
-            description="Add, edit and delete office locations."
-          />
+          <Link
+            to="/manage-offices"
+            className="bg-white shadow-lg rounded-xl p-6 hover:bg-cyan-50"
+          >
+            <h2 className="text-2xl font-bold">Manage Offices</h2>
+            <p>Add, Edit and Delete Offices</p>
+          </Link>
 
-          <DashboardCard
-            title="Manage Floor Maps"
-            description="Upload and update building maps."
-          />
+          <Link
+            to="/manage-faqs"
+            className="bg-white shadow-lg rounded-xl p-6 hover:bg-cyan-50"
+          >
+            <h2 className="text-2xl font-bold">Manage FAQs</h2>
+            <p>Update AI Questions</p>
+          </Link>
 
-          <DashboardCard
-            title="Manage FAQs"
-            description="Add FAQs for the AI Assistant."
-          />
+          <Link
+            to="/floor-maps"
+            className="bg-white shadow-lg rounded-xl p-6 hover:bg-cyan-50"
+          >
+            <h2 className="text-2xl font-bold">Floor Maps</h2>
+            <p>Upload Building Maps</p>
+          </Link>
+
+          <Link
+            to="/chat-moderation"
+            className="bg-white shadow-lg rounded-xl p-6 hover:bg-cyan-50"
+          >
+            <h2 className="text-2xl font-bold">Chat Moderation</h2>
+            <p>Manage Chat Messages</p>
+          </Link>
 
         </div>
 
