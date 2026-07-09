@@ -35,39 +35,48 @@ function AIAssistant() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto p-10">
+      <div className="max-w-3xl mx-auto px-6 py-12 min-h-[75vh]">
 
-        <h1 className="text-4xl font-bold mb-6">
-          AI Assistant
-        </h1>
+        {/* Page Header */}
+        <div className="mb-10 border-b border-gray-200/80 pb-6 relative">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+            AI Virtual Concierge
+          </h1>
+          <p className="text-gray-500 text-sm font-light mt-2 uppercase tracking-widest">
+            Instant digital assistance for guest services and tenant directories
+          </p>
+          <div className="absolute bottom-[-1px] left-0 w-24 h-[2px] bg-gold-400"></div>
+        </div>
 
-        <div className="bg-white shadow-lg rounded-xl p-6">
+        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
 
+          <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-2 block">Ask a Question</label>
           <input
             type="text"
-            placeholder="Ask a question... (e.g. Where is HR?)"
+            placeholder="e.g. Where is Ernst & Young office? or What are reception hours?"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && askQuestion()}
-            className="w-full border rounded-lg p-3"
+            className="w-full border border-gray-200 p-4 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50 mb-4"
           />
 
           <button
             onClick={askQuestion}
             disabled={loading}
-            className="mt-5 bg-cyan-500 text-white px-6 py-3 rounded-lg hover:bg-cyan-600 disabled:opacity-50"
+            className="bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 py-3 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer disabled:opacity-50"
           >
-            {loading ? "Thinking..." : "Ask"}
+            {loading ? "Thinking..." : "Inquire"}
           </button>
 
           {answer && (
-            <div className="mt-6 p-4 bg-slate-100 rounded-lg">
-              <strong>Answer:</strong>
-              <p className="mt-2">{answer}</p>
+            <div className="mt-8 p-6 bg-slate-50 border-l-2 border-gold-400 rounded">
+              <span className="text-xs uppercase tracking-widest text-gold-600 font-bold block mb-2">Concierge Response:</span>
+              <p className="text-sm text-gray-700 leading-relaxed font-light">{answer}</p>
 
               {source && (
-                <p className="mt-3 text-xs text-gray-500">
-                  Source: {source === "faq" ? "Building FAQ" : "Office Directory"}
+                <p className="mt-4 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                  Database Source: {source === "faq" ? "Building FAQ" : "Tenant Directory"}
                 </p>
               )}
             </div>

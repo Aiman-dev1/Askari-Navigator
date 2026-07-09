@@ -48,64 +48,79 @@ function SuperAdminDashboard() {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto px-6 py-12 min-h-screen">
 
-        <h1 className="text-4xl font-bold mb-8">
-          Super Admin Dashboard
-        </h1>
+        {/* Dashboard Header */}
+        <div className="mb-10 border-b border-gray-200/80 pb-6 relative">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+            Super Admin Dashboard
+          </h1>
+          <p className="text-gray-500 text-sm font-light mt-2 uppercase tracking-widest">
+            Onboard new properties, manage subscriptions, and oversee global tenants
+          </p>
+          <div className="absolute bottom-[-1px] left-0 w-24 h-[2px] bg-gold-400"></div>
+        </div>
 
         {/* Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
 
-        <div className="grid md:grid-cols-3 gap-5 mb-10">
-
-          <div className="bg-blue-600 text-white p-6 rounded-xl">
-            <h2 className="text-3xl font-bold">{tenants.length}</h2>
-            <p>Total Buildings</p>
+          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
+            <h2 className="text-4xl font-serif font-bold text-gold-400">{tenants.length}</h2>
+            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Total Buildings</p>
           </div>
 
-          <div className="bg-purple-600 text-white p-6 rounded-xl">
-            <h2 className="text-3xl font-bold">{activeCount}</h2>
-            <p>Active Subscriptions</p>
+          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
+            <h2 className="text-4xl font-serif font-bold text-gold-400">{activeCount}</h2>
+            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Active Subscriptions</p>
           </div>
 
-          <div className="bg-orange-500 text-white p-6 rounded-xl">
-            <h2 className="text-3xl font-bold">
+          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
+            <h2 className="text-4xl font-serif font-bold text-gold-400">
               {tenants.filter((t) => t.subscriptionStatus === "Trial").length}
             </h2>
-            <p>Trials</p>
+            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Trials</p>
           </div>
 
         </div>
 
         {/* Onboard building */}
+        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
 
-        <div className="bg-white shadow rounded-xl p-6 mb-10">
-
-          <h2 className="text-2xl font-bold mb-5">
-            Onboard New Building
+          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
+            Onboard New Building Property
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-6">
 
-            <input
-              placeholder="Building Name (e.g. Sky Tower)"
-              value={form.buildingName}
-              onChange={(e) => setForm({ ...form, buildingName: e.target.value })}
-              className="border p-3 rounded-lg"
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Building Name</label>
+              <input
+                placeholder="e.g. Askari Corporate Tower"
+                value={form.buildingName}
+                onChange={(e) => setForm({ ...form, buildingName: e.target.value })}
+                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
+              />
+            </div>
 
-            <input
-              placeholder="Slug (e.g. sky-tower)"
-              value={form.slug}
-              onChange={(e) => setForm({ ...form, slug: e.target.value })}
-              className="border p-3 rounded-lg"
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">System URL Slug</label>
+              <input
+                placeholder="e.g. askari-tower"
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
+              />
+            </div>
 
           </div>
 
           <button
             onClick={addTenant}
-            className="mt-5 bg-blue-600 text-white px-6 py-3 rounded-lg"
+            className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 py-3 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer"
           >
             Onboard Building
           </button>
@@ -113,88 +128,97 @@ function SuperAdminDashboard() {
         </div>
 
         {/* Buildings */}
+        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
 
-        <div className="bg-white shadow rounded-xl p-6 mb-10">
-
-          <h2 className="text-2xl font-bold mb-5">
-            Buildings
+          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
+            Registered Building Properties
           </h2>
 
-          <table className="w-full">
-
-            <thead className="bg-gray-200">
-
-              <tr>
-
-                <th className="p-3">Building</th>
-                <th>Slug</th>
-                <th>Status</th>
-                <th>Action</th>
-
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {tenants.map((t) => (
-
-                <tr key={t._id} className="text-center border-b">
-
-                  <td className="p-3">{t.buildingName}</td>
-
-                  <td>{t.slug}</td>
-
-                  <td className={`font-bold ${STATUS_STYLES[t.subscriptionStatus] || ""}`}>
-                    {t.subscriptionStatus}
-                  </td>
-
-                  <td>
-                    <select
-                      value={t.subscriptionStatus}
-                      onChange={(e) => setStatus(t._id, e.target.value)}
-                      className="border rounded p-1"
-                    >
-                      <option>Trial</option>
-                      <option>Active</option>
-                      <option>Suspended</option>
-                      <option>Cancelled</option>
-                    </select>
-                  </td>
-
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-gold-400 text-xs uppercase tracking-widest font-serif border-b border-gold-400/20">
+                  <th className="p-4">Building Name</th>
+                  <th className="p-4">Slug</th>
+                  <th className="p-4">Subscription Status</th>
+                  <th className="p-4 text-center">Action / Update Status</th>
                 </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tenants.map((t) => (
+                  <tr key={t._id} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-4 text-sm font-semibold text-slate-900">{t.buildingName}</td>
+                    <td className="p-4 text-sm text-gray-600 font-mono">{t.slug}</td>
+                    <td className="p-4 text-sm font-medium">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        t.subscriptionStatus === "Active" ? "bg-green-100 text-green-700" :
+                        t.subscriptionStatus === "Trial" ? "bg-blue-100 text-blue-700" :
+                        t.subscriptionStatus === "Suspended" ? "bg-orange-100 text-orange-700" :
+                        "bg-red-100 text-red-700"
+                      }`}>
+                        {t.subscriptionStatus}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <select
+                        value={t.subscriptionStatus}
+                        onChange={(e) => setStatus(t._id, e.target.value)}
+                        className="border border-gray-200 rounded p-2 text-xs focus:outline-none focus:border-gold-400 bg-slate-50"
+                      >
+                        <option value="Trial">Trial</option>
+                        <option value="Active">Active</option>
+                        <option value="Suspended">Suspended</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Subscription */}
+        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
 
-        <div className="bg-white shadow rounded-xl p-6 mb-10">
-
-          <h2 className="text-2xl font-bold mb-4">
-            Subscription Plans
+          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
+            Global Subscription Plans
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-6">
 
-            <div className="border rounded-lg p-5">
-              <h3 className="text-xl font-bold">Basic</h3>
-              <p className="mt-2">$29 / month</p>
+            <div className="border border-gray-200 hover:border-gold-400 rounded p-6 hover:shadow-lg transition-all duration-300 relative group">
+              <h3 className="text-lg font-serif font-bold text-slate-950 group-hover:text-gold-600 transition-colors">Basic</h3>
+              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">$29 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
+              <div className="mt-4 text-xs text-gray-500 space-y-1 font-light">
+                <p>• Up to 20 office listings</p>
+                <p>• Basic indoor navigation paths</p>
+                <p>• Standard community chat lobby</p>
+              </div>
             </div>
 
-            <div className="border rounded-lg p-5">
-              <h3 className="text-xl font-bold">Professional</h3>
-              <p className="mt-2">$79 / month</p>
+            <div className="border border-gold-400/50 bg-gold-50/10 rounded p-6 shadow-md relative group">
+              <div className="absolute top-0 right-4 bg-gold-400 text-slate-950 text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-b">Popular</div>
+              <h3 className="text-lg font-serif font-bold text-slate-950">Professional</h3>
+              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">$79 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
+              <div className="mt-4 text-xs text-gray-500 space-y-1 font-light">
+                <p>• Unlimited office directories</p>
+                <p>• Advanced step schematic paths</p>
+                <p>• Multi-room tenant messaging chat</p>
+                <p>• Automated virtual bot replies</p>
+              </div>
             </div>
 
-            <div className="border rounded-lg p-5">
-              <h3 className="text-xl font-bold">Enterprise</h3>
-              <p className="mt-2">$199 / month</p>
+            <div className="border border-gray-200 hover:border-gold-400 rounded p-6 hover:shadow-lg transition-all duration-300 relative group">
+              <h3 className="text-lg font-serif font-bold text-slate-950 group-hover:text-gold-600 transition-colors">Enterprise</h3>
+              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">$199 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
+              <div className="mt-4 text-xs text-gray-500 space-y-1 font-light">
+                <p>• Dedicated custom domain mappings</p>
+                <p>• Priority 24/7 technical assistance</p>
+                <p>• Custom AI knowledgebase integrations</p>
+              </div>
             </div>
 
           </div>

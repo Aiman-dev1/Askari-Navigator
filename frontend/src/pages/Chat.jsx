@@ -116,42 +116,53 @@ function Chat() {
 
   return (
     <MainLayout>
-      <div className="max-w-6xl mx-auto p-10">
+      <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen">
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold">Live Chat</h1>
-
-          {matching ? (
-            <button
-              onClick={cancelShuffle}
-              className="bg-red-500 text-white px-5 py-2 rounded-lg"
-            >
-              Cancel Shuffle
-            </button>
-          ) : (
-            <button
-              onClick={shuffleChat}
-              className="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-700"
-            >
-              🔀 Shuffle Chat
-            </button>
-          )}
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 border-b border-gray-200/80 pb-6 relative">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+              Tenant Network
+            </h1>
+            <p className="text-gray-500 text-sm font-light mt-2 uppercase tracking-widest">
+              Private communications & public room boards for Askari Corporate Tower
+            </p>
+          </div>
+          
+          <div className="relative z-10">
+            {matching ? (
+              <button
+                onClick={cancelShuffle}
+                className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow cursor-pointer"
+              >
+                Cancel Shuffle
+              </button>
+            ) : (
+              <button
+                onClick={shuffleChat}
+                className="bg-gold-400 hover:bg-gold-500 text-slate-950 px-5 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md hover:shadow-gold-400/10 cursor-pointer"
+              >
+                🔀 Shuffle Chat
+              </button>
+            )}
+          </div>
+          <div className="absolute bottom-[-1px] left-0 w-24 h-[2px] bg-gold-400"></div>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-4 gap-8">
 
-          {/* Rooms */}
-          <div className="bg-white rounded-xl shadow-lg p-4">
-            <h2 className="font-bold mb-3 text-gray-500 text-sm uppercase">Rooms</h2>
+          {/* Rooms List */}
+          <div className="bg-white border border-gray-200/60 rounded p-6 shadow-sm">
+            <h2 className="font-serif font-bold mb-4 text-slate-900 text-xs uppercase tracking-widest border-b border-gray-100 pb-2">Active Boards</h2>
             <div className="space-y-1">
               {rooms.map((room) => (
                 <button
                   key={room._id}
                   onClick={() => setActiveRoom(room)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                  className={`w-full text-left px-3 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                     activeRoom?._id === room._id
-                      ? "bg-cyan-500 text-white"
-                      : "hover:bg-slate-100"
+                      ? "bg-slate-900 text-gold-400 border-l-2 border-gold-400 shadow-sm"
+                      : "hover:bg-slate-50 text-gray-600 hover:text-slate-900"
                   }`}
                 >
                   {room.type === "match" ? "🔀 " : "# "}
@@ -161,21 +172,33 @@ function Chat() {
             </div>
           </div>
 
-          {/* Messages */}
-          <div className="bg-white rounded-xl shadow-lg p-6 md:col-span-3">
+          {/* Chat Messages */}
+          <div className="bg-white border border-gray-200/60 rounded p-8 md:col-span-3 shadow-sm flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
 
-            <div className="h-80 overflow-y-auto border rounded-lg p-4 mb-4">
+            {/* Room Banner */}
+            <div className="border-b border-gray-100 pb-3 mb-6 flex justify-between items-center">
+              <span className="text-xs uppercase tracking-widest text-gold-600 font-bold font-serif">
+                {activeRoom ? `# ${activeRoom.name}` : "Select a room"}
+              </span>
+            </div>
+
+            <div className="h-96 overflow-y-auto border border-gray-100 rounded p-6 mb-6 bg-slate-50/30">
 
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`mb-3 ${isMine(msg) ? "text-right" : "text-left"}`}
+                  className={`mb-4 max-w-[80%] flex flex-col ${isMine(msg) ? "ml-auto items-end" : "mr-auto items-start"}`}
                 >
-                  <p className="font-bold">{isMine(msg) ? "You" : msg.sender}</p>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">
+                    {isMine(msg) ? "You" : msg.sender}
+                  </span>
 
                   <div
-                    className={`inline-block px-4 py-2 rounded-lg ${
-                      isMine(msg) ? "bg-cyan-500 text-white" : "bg-slate-200"
+                    className={`px-4 py-3 rounded text-sm leading-relaxed ${
+                      isMine(msg) 
+                        ? "bg-slate-900 border border-gold-400/20 text-white shadow-sm border-r-2 border-r-gold-400" 
+                        : "bg-white border border-gray-200 text-gray-700 shadow-sm"
                     }`}
                   >
                     {msg.message}
@@ -192,17 +215,17 @@ function Chat() {
               <input
                 type="text"
                 placeholder={
-                  activeRoom ? `Message ${activeRoom.name}...` : "Select a room..."
+                  activeRoom ? `Type message in board ${activeRoom.name}...` : "Select a board to start chat..."
                 }
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                className="flex-1 border rounded-lg p-3"
+                className="flex-1 border border-gray-200 rounded p-3 text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
               />
 
               <button
                 onClick={sendMessage}
-                className="bg-cyan-500 text-white px-6 rounded-lg hover:bg-cyan-600"
+                className="bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer"
               >
                 Send
               </button>

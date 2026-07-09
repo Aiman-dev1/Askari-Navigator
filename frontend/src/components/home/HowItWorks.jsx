@@ -1,75 +1,62 @@
 function HowItWorks() {
+  const steps = [
+    {
+      num: "01",
+      title: "Search Directory",
+      desc: "Locate any registered company, floor, office suite, or business lounge instantaneously."
+    },
+    {
+      num: "02",
+      title: "Get Directions",
+      desc: "Follow refined, step-by-step room and floor paths straight to your destination."
+    },
+    {
+      num: "03",
+      title: "Connect via Chat",
+      desc: "Interact with verified tenant employees and building management in active chat spaces."
+    },
+    {
+      num: "04",
+      title: "Inquire AI concierge",
+      desc: "Receive instant guidance regarding building protocols, directory entries, or service policies."
+    }
+  ];
+
   return (
-    <section className="py-20 bg-slate-100">
+    <section className="py-24 bg-white border-b border-gray-150">
 
       <div className="max-w-7xl mx-auto px-6">
 
-        <h2 className="text-4xl font-bold text-center mb-3">
-          How It Works
+        <h2 className="text-4xl md:text-5xl font-serif font-bold text-center text-slate-900 tracking-wide">
+          HOW IT WORKS
         </h2>
 
-        <p className="text-center text-gray-500 mb-12">
-          Find your destination in just a few simple steps.
+        <div className="w-20 h-[2px] bg-gold-400 mx-auto mt-4 mb-6"></div>
+
+        <p className="text-center text-gray-500 max-w-xl mx-auto mb-16 font-light">
+          Navigate and interact inside our corporate environment with four seamless digital steps.
         </p>
 
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-4 gap-8">
+          {steps.map((s, i) => (
+            <div key={i} className="bg-[#fcfbfa] border border-gray-100 p-8 rounded shadow-sm hover:shadow-md transition-shadow duration-300 relative group">
+              <div className="absolute top-4 right-6 text-4xl font-serif font-bold text-gold-400/20 group-hover:text-gold-400/30 transition-colors duration-300">
+                {s.num}
+              </div>
 
-          <div className="bg-white p-6 rounded-xl shadow">
-            <div className="text-3xl font-bold text-cyan-600 mb-3">
-              1
+              <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gold-50 border border-gold-400/20 text-gold-600 font-serif font-bold text-lg mb-6">
+                {i + 1}
+              </div>
+
+              <h3 className="text-lg font-serif font-bold text-slate-900 mb-3 tracking-wide uppercase">
+                {s.title}
+              </h3>
+
+              <p className="text-gray-500 text-sm leading-relaxed font-light">
+                {s.desc}
+              </p>
             </div>
-
-            <h3 className="text-xl font-bold mb-2">
-              Search
-            </h3>
-
-            <p className="text-gray-600">
-              Search for any office, department or meeting room.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow">
-            <div className="text-3xl font-bold text-cyan-600 mb-3">
-              2
-            </div>
-
-            <h3 className="text-xl font-bold mb-2">
-              Navigate
-            </h3>
-
-            <p className="text-gray-600">
-              Follow indoor directions to reach your destination.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow">
-            <div className="text-3xl font-bold text-cyan-600 mb-3">
-              3
-            </div>
-
-            <h3 className="text-xl font-bold mb-2">
-              Chat
-            </h3>
-
-            <p className="text-gray-600">
-              Connect instantly with employees and visitors.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow">
-            <div className="text-3xl font-bold text-cyan-600 mb-3">
-              4
-            </div>
-
-            <h3 className="text-xl font-bold mb-2">
-              AI Assistant
-            </h3>
-
-            <p className="text-gray-600">
-              Get instant answers to building-related questions.
-            </p>
-          </div>
-
+          ))}
         </div>
 
       </div>

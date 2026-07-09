@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
 import { useAuth, homeRouteFor } from "../context/AuthContext";
+import heroImg from "../assets/hero.png";
 
 function Login() {
   const { login, guestLogin } = useAuth();
@@ -43,68 +44,88 @@ function Login() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen flex justify-center items-center bg-slate-100">
+      <div 
+        className="min-h-screen flex justify-center items-center bg-slate-950 py-12 px-4 relative"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(6, 9, 17, 0.85), rgba(6, 9, 17, 0.95)), url(${heroImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-400/20 to-transparent"></div>
 
-        <div className="bg-white shadow-lg p-8 rounded-xl w-96">
+        <div className="glass-card-dark p-10 rounded shadow-2xl w-full max-w-md border border-gold-400/20">
 
-          <h2 className="text-3xl font-bold text-center mb-6">
-            Login
-          </h2>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-serif font-bold text-white tracking-wide">
+              MEMBER PORTAL
+            </h2>
+            <div className="w-12 h-[2px] bg-gold-400 mx-auto mt-2"></div>
+            <p className="text-xs text-gray-400 mt-3 uppercase tracking-wider">Askari Corporate Tower</p>
+          </div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border p-3 rounded mb-4"
-          />
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1 block">Email Address</label>
+              <input
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 p-3 rounded focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all text-sm"
+              />
+            </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            className="w-full border p-3 rounded mb-4"
-          />
+            <div>
+              <label className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1 block">Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 p-3 rounded focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all text-sm"
+              />
+            </div>
 
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full bg-cyan-500 text-white p-3 rounded disabled:opacity-50"
-          >
-            {loading ? "Please wait..." : "Login"}
-          </button>
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full bg-gold-400 hover:bg-gold-500 text-slate-950 font-bold p-3.5 rounded disabled:opacity-50 transition-all duration-300 uppercase tracking-widest text-xs mt-6 cursor-pointer shadow-md hover:shadow-gold-400/10"
+            >
+              {loading ? "Please wait..." : "Sign In"}
+            </button>
+          </div>
 
-          <p className="text-center text-sm text-gray-500 mt-4">
-            No account?{" "}
-            <Link to="/register" className="text-cyan-600 font-bold">
-              Register
+          <p className="text-center text-xs text-gray-400 mt-6 uppercase tracking-wider">
+            New corporate client?{" "}
+            <Link to="/register" className="text-gold-400 font-bold hover:underline transition-all">
+              Register Here
             </Link>
           </p>
 
           {/* Guest access — friction-free onboarding */}
-          <div className="border-t mt-6 pt-6">
+          <div className="border-t border-white/10 mt-8 pt-8">
 
-            <p className="text-center text-sm text-gray-500 mb-3">
-              Just visiting? Continue as a guest
+            <p className="text-center text-xs text-gold-400/80 mb-4 uppercase tracking-widest font-semibold">
+              Visitor Access
             </p>
 
             <div className="flex gap-2">
 
               <input
                 type="text"
-                placeholder="Pick a username"
+                placeholder="Temporary visitor name"
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleGuest()}
-                className="flex-1 border p-3 rounded"
+                className="flex-1 bg-white/5 border border-white/10 text-white placeholder-gray-500 p-3 rounded focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all text-sm"
               />
 
               <button
                 onClick={handleGuest}
                 disabled={loading}
-                className="bg-slate-800 text-white px-4 rounded disabled:opacity-50"
+                className="bg-white/10 hover:bg-white/20 text-white font-bold px-6 rounded disabled:opacity-50 border border-white/10 hover:border-white/20 transition-all uppercase tracking-wider text-xs cursor-pointer"
               >
                 Go
               </button>

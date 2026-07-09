@@ -1,1 +1,68 @@
 @import "tailwindcss";
+
+@theme {
+  /* Luxury Gold Palette matching Askari Corporate Tower website */
+  --color-gold-50: #faf8f5;
+  --color-gold-100: #f3edd7;
+  --color-gold-200: #e7dbab;
+  --color-gold-300: #d9c37b;
+  --color-gold-400: #cca353; /* Primary Gold Accent */
+  --color-gold-500: #bd903d;
+  --color-gold-600: #a1762e;
+  --color-gold-700: #815923;
+  --color-gold-800: #65441d;
+  --color-gold-900: #533719;
+  --color-gold-950: #2e1d0d;
+
+  /* Executive Dark Background Slate */
+  --color-slate-900: #0b0f19;
+  --color-slate-950: #060911;
+
+  /* Fonts */
+  --font-serif: "Cinzel", serif;
+  --font-sans: "Outfit", sans-serif;
+}
+
+/* Global transitions and overrides */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: #fcfbfa;
+    color: #1b2030;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Glassmorphism card utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card-dark {
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(204, 163, 83, 0.15);
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f3ef;
+}
+::-webkit-scrollbar-thumb {
+  background: #cca353;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a1762e;
+}

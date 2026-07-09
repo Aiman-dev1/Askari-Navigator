@@ -5,25 +5,25 @@ import DashboardCard from "../components/dashboard/DashboardCard";
 function UserDashboard() {
   return (
     <MainLayout>
-      <div className="p-10">
+      <div className="max-w-7xl mx-auto px-6 py-12 min-h-[75vh]">
 
-        <DashboardHeader title="User Dashboard" />
+        <DashboardHeader title="Member Dashboard" />
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-8">
 
           <DashboardCard
-            title="Navigation"
-            description="Search offices and find directions."
+            title="Indoor Navigation"
+            description="Access interactive directions, floor information, and room routes."
           />
 
           <DashboardCard
-            title="Live Chat"
-            description="Chat with employees and visitors."
+            title="Tenant Chat Space"
+            description="Communicate in real-time with other businesses and administration."
           />
 
           <DashboardCard
-            title="AI Assistant"
-            description="Ask FAQs about the building."
+            title="AI Virtual Concierge"
+            description="Inquire FAQs, building amenities details, and guidelines instantly."
           />
 
         </div>
