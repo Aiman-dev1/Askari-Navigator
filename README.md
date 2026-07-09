@@ -61,16 +61,6 @@ VITE_API_URL=https://your-api.example.com
 VITE_TENANT_SLUG=apex-tower
 ```
 
-## Demo Accounts (after seeding)
-
-| Role         | Email               | Password | Lands on           |
-| ------------ | ------------------- | -------- | ------------------ |
-| Super admin  | super@towernav.com  | super123 | `/super-admin`     |
-| Tenant admin | admin@apextower.com | admin123 | `/building-admin`  |
-| Guest        | — pick any username on the login page — | — | `/user` |
-
-**Try Shuffle Chat**: open two browser windows (one incognito), log in as two different guests, open **Chat** in both, and click **🔀 Shuffle Chat** — the backend pairs them into a private room.
-
 ## API & Real-Time Events
 
 Full endpoint and Socket.io event reference: [backend/README.md](backend/README.md).
