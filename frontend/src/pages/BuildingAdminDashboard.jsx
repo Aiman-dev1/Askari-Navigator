@@ -1,22 +1,54 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import {
+  FiHelpCircle,
+  FiFileText,
+  FiGrid,
+  FiAlertTriangle,
+  FiLayers,
+  FiCreditCard,
+  FiUploadCloud,
+} from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api, API_URL } from "../lib/api";
+
+/* ── Reusable section card wrapper ── */
+function SectionCard({ accent = "gold", children, className = "" }) {
+  const accentColor =
+    accent === "red" ? "bg-red-500/40" : "bg-gold-400/40";
+  return (
+    <div
+      className={`bg-white border border-gray-200/60 shadow-md rounded-lg p-8 mb-8 relative overflow-hidden ${className}`}
+    >
+      <div className={`absolute top-0 left-0 w-full h-[3px] ${accentColor}`} />
+      {children}
+    </div>
+  );
+}
+
+/* ── Section heading ── */
+function SectionTitle({ icon: Icon, children }) {
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && (
+        <div className="w-9 h-9 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 shrink-0">
+          <Icon size={16} />
+        </div>
+      )}
+      <h2 className="text-xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+        {children}
+      </h2>
+    </div>
+  );
+}
 
 function BuildingAdminDashboard() {
   const [offices, setOffices] = useState([]);
   const [reported, setReported] = useState([]);
   const [tenant, setTenant] = useState(null);
-  const [faqs, setFaqs] = useState([]);
 
-  const [office, setOffice] = useState({
-    name: "",
-    floor: "",
-    room: "",
-  });
-
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [office, setOffice] = useState({ name: "", floor: "", room: "" });
 
   const [mapFloor, setMapFloor] = useState("");
   const [mapFile, setMapFile] = useState(null);
@@ -42,11 +74,6 @@ function BuildingAdminDashboard() {
       .catch(() => {});
 
     api
-      .get("/faqs")
-      .then((data) => setFaqs(data.faqs))
-      .catch((err) => toast.error(err.message));
-
-    api
       .get("/billing/subscription")
       .then(setSubscription)
       .catch(() => {});
@@ -56,7 +83,6 @@ function BuildingAdminDashboard() {
       .then((data) => setPlans(data.plans))
       .catch(() => {});
 
-    // Feedback after returning from Stripe Checkout
     const billing = new URLSearchParams(window.location.search).get("billing");
     if (billing === "success") toast.success("Subscription activated — thank you!");
     if (billing === "cancelled") toast("Checkout cancelled", { icon: "ℹ️" });
@@ -97,36 +123,12 @@ function BuildingAdminDashboard() {
     }
   };
 
-  const addFaq = async () => {
-    if (!question || !answer) return;
-    try {
-      const data = await api.post("/faqs", { question, answer });
-      setFaqs([...faqs, data.faq]);
-      setQuestion("");
-      setAnswer("");
-      toast.success("FAQ added");
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
-  const deleteFaq = async (id) => {
-    try {
-      await api.delete(`/faqs/${id}`);
-      setFaqs(faqs.filter((item) => item._id !== id));
-      toast.success("FAQ deleted");
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
-
   const handleChange = (e) => {
     setOffice({ ...office, [e.target.name]: e.target.value });
   };
 
   const addOffice = async () => {
     if (!office.name || !office.floor || !office.room) return;
-
     try {
       const data = await api.post("/offices", office);
       setOffices([...offices, data.office]);
@@ -161,107 +163,114 @@ function BuildingAdminDashboard() {
     <MainLayout>
       <div className="max-w-7xl mx-auto px-6 py-12 min-h-screen">
 
-        {/* Dashboard Header */}
+        {/* ── Page Header ── */}
         <div className="mb-10 border-b border-gray-200/80 pb-6 relative">
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
             Building Admin Dashboard
           </h1>
           <p className="text-gray-500 text-sm font-light mt-2 uppercase tracking-widest">
-            Manage offices, directory listings, FAQs, and moderation settings
+            Manage offices, directory listings, floor maps, and moderation settings
           </p>
-          <div className="absolute bottom-[-1px] left-0 w-24 h-[2px] bg-gold-400"></div>
+          <div className="absolute bottom-[-1px] left-0 w-24 h-[2px] bg-gold-400" />
         </div>
 
-        {/* Dashboard Stat Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-
-          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
-            <h2 className="text-4xl font-serif font-bold text-gold-400">{offices.length}</h2>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Total Offices</p>
-          </div>
-
-          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
-            <h2 className="text-4xl font-serif font-bold text-gold-400">{faqs.length}</h2>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">FAQs</p>
-          </div>
-
-          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
-            <h2 className="text-4xl font-serif font-bold text-gold-400">{tenant?.floors?.length || 0}</h2>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Floors</p>
-          </div>
-
-          <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-red-500/70"></div>
-            <h2 className="text-4xl font-serif font-bold text-red-400">{reported.length}</h2>
-            <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Chat Reports</p>
-          </div>
-
+        {/* ── Stat Cards ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+          {[
+            { label: "Total Offices", value: offices.length, color: "text-gold-400", bar: "bg-gold-400" },
+            { label: "Floors", value: tenant?.floors?.length || 0, color: "text-gold-400", bar: "bg-gold-400" },
+            { label: "Subscription", value: subscription?.plan ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) : "—", color: "text-gold-400", bar: "bg-gold-400", small: true },
+            { label: "Chat Reports", value: reported.length, color: "text-red-400", bar: "bg-red-500/70" },
+          ].map((card) => (
+            <div
+              key={card.label}
+              className="bg-slate-900 border border-gold-400/20 text-white rounded-lg p-6 shadow-md relative overflow-hidden group hover:border-gold-400/40 transition-colors duration-300"
+            >
+              <div className={`absolute top-0 left-0 w-full h-[3px] ${card.bar}`} />
+              <h2 className={`font-serif font-bold ${card.small ? "text-2xl mt-1" : "text-4xl"} ${card.color}`}>
+                {card.value}
+              </h2>
+              <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">
+                {card.label}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Add Office */}
-        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
-
-          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
-            Add New Office Suite
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Office Name</label>
-              <input
-                name="name"
-                placeholder="e.g. Ernst & Young Office"
-                value={office.name}
-                onChange={handleChange}
-                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-              />
+        {/* ── Quick Links ── */}
+        <div className="grid sm:grid-cols-2 gap-5 mb-10">
+          <Link
+            to="/building-admin/faqs"
+            className="group flex items-center gap-5 bg-white border border-gray-200/60 hover:border-gold-400/50 shadow-sm hover:shadow-md rounded-lg p-6 transition-all duration-300"
+          >
+            <div className="w-12 h-12 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 group-hover:bg-gold-400/20 transition-colors shrink-0">
+              <FiHelpCircle size={22} />
             </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Floor Level</label>
-              <input
-                name="floor"
-                placeholder="e.g. 8th Floor"
-                value={office.floor}
-                onChange={handleChange}
-                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-              />
+            <div>
+              <p className="font-serif font-bold text-slate-900 text-base uppercase tracking-wide group-hover:text-gold-600 transition-colors">
+                Manage FAQs
+              </p>
+              <p className="text-gray-500 text-xs mt-1 font-light">
+                Add, edit, and remove FAQ entries that power the AI concierge
+              </p>
             </div>
+            <span className="ml-auto text-gray-300 group-hover:text-gold-400 transition-colors text-lg">→</span>
+          </Link>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Room / Suite Code</label>
-              <input
-                name="room"
-                placeholder="e.g. Suite 803"
-                value={office.room}
-                onChange={handleChange}
-                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-              />
+          <Link
+            to="/building-admin/info-sheet"
+            className="group flex items-center gap-5 bg-white border border-gray-200/60 hover:border-gold-400/50 shadow-sm hover:shadow-md rounded-lg p-6 transition-all duration-300"
+          >
+            <div className="w-12 h-12 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 group-hover:bg-gold-400/20 transition-colors shrink-0">
+              <FiFileText size={22} />
             </div>
+            <div>
+              <p className="font-serif font-bold text-slate-900 text-base uppercase tracking-wide group-hover:text-gold-600 transition-colors">
+                Info Sheet
+              </p>
+              <p className="text-gray-500 text-xs mt-1 font-light">
+                View and manage building information, hours, and emergency contacts
+              </p>
+            </div>
+            <span className="ml-auto text-gray-300 group-hover:text-gold-400 transition-colors text-lg">→</span>
+          </Link>
+        </div>
+
+        {/* ── Add Office Suite ── */}
+        <SectionCard>
+          <SectionTitle icon={FiGrid}>Add New Office Suite</SectionTitle>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              { name: "name", label: "Office Name", placeholder: "e.g. Ernst & Young Office" },
+              { name: "floor", label: "Floor Level", placeholder: "e.g. 8th Floor" },
+              { name: "room", label: "Room / Suite Code", placeholder: "e.g. Suite 803" },
+            ].map((field) => (
+              <div key={field.name} className="flex flex-col gap-1.5">
+                <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+                  {field.label}
+                </label>
+                <input
+                  name={field.name}
+                  placeholder={field.placeholder}
+                  value={office[field.name]}
+                  onChange={handleChange}
+                  className="border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
+                />
+              </div>
+            ))}
           </div>
-
           <button
             onClick={addOffice}
-            className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 py-3 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer"
+            className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-7 py-3 rounded-lg font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer hover:shadow-md"
           >
             Add Office Listing
           </button>
+        </SectionCard>
 
-        </div>
-
-        {/* Office Table */}
-        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
-
-          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
-            Office Directory Management
-          </h2>
-
-          <div className="overflow-x-auto">
+        {/* ── Office Directory Table ── */}
+        <SectionCard>
+          <SectionTitle icon={FiGrid}>Office Directory Management</SectionTitle>
+          <div className="overflow-x-auto rounded-lg border border-gray-100">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-900 text-gold-400 text-xs uppercase tracking-widest font-serif border-b border-gold-400/20">
@@ -272,257 +281,236 @@ function BuildingAdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {offices.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-sm font-semibold text-slate-900">{item.name}</td>
-                    <td className="p-4 text-sm text-gray-600">{item.floor}</td>
-                    <td className="p-4 text-sm text-gray-600">{item.room}</td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => deleteOffice(item._id)}
-                        className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                      >
-                        Delete
-                      </button>
+                {offices.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center text-gray-400 text-sm">
+                      No office listings yet. Add one above.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  offices.map((item) => (
+                    <tr key={item._id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 text-sm font-semibold text-slate-900">{item.name}</td>
+                      <td className="p-4 text-sm text-gray-600">{item.floor}</td>
+                      <td className="p-4 text-sm text-gray-600">{item.room}</td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => deleteOffice(item._id)}
+                          className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        </div>
+        </SectionCard>
 
-        {/* FAQs */}
-        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
+        {/* ── Floor Map Schematic Upload ── */}
+        <SectionCard>
+          <SectionTitle icon={FiUploadCloud}>Floor Map Schematic Upload</SectionTitle>
 
-          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
-            Manage FAQs & Info Sheets
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Question</label>
-              <input
-                placeholder="e.g. What are lobby operating hours?"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-              />
+          {(!tenant?.floors || tenant.floors.length === 0) ? (
+            <div className="p-8 bg-slate-50 rounded-lg border border-dashed border-gray-200 text-center">
+              <FiLayers size={32} className="mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500 text-sm">No floors configured for this building yet.</p>
             </div>
+          ) : (
+            <>
+              <div className="grid md:grid-cols-3 gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+                    Floor Level
+                  </label>
+                  <select
+                    value={mapFloor}
+                    onChange={(e) => setMapFloor(e.target.value)}
+                    className="border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
+                  >
+                    <option value="">Select floor...</option>
+                    {(tenant?.floors || []).map((f) => (
+                      <option key={f.floorNumber} value={f.floorNumber}>
+                        {f.name || `Floor ${f.floorNumber}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Answer / Guideline</label>
-              <input
-                placeholder="e.g. The reception desk is staffed 24/7."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={addFaq}
-            className="bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 py-3 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer"
-          >
-            Add FAQ Listing
-          </button>
-
-          <div className="overflow-x-auto mt-8">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-900 text-gold-400 text-xs uppercase tracking-widest font-serif border-b border-gold-400/20">
-                  <th className="p-4 w-1/3">Question</th>
-                  <th className="p-4 w-1/2">Answer</th>
-                  <th className="p-4 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {faqs.map((item) => (
-                  <tr key={item._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-sm font-semibold text-slate-900">{item.question}</td>
-                    <td className="p-4 text-sm text-gray-600 leading-relaxed">{item.answer}</td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => deleteFaq(item._id)}
-                        className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Floor Map */}
-        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
-
-          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
-            Floor Map Schematic Upload
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Floor Level</label>
-              <select
-                value={mapFloor}
-                onChange={(e) => setMapFloor(e.target.value)}
-                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-              >
-                <option value="">Select floor...</option>
-                {(tenant?.floors || []).map((f) => (
-                  <option key={f.floorNumber} value={f.floorNumber}>
-                    {f.name || `Floor ${f.floorNumber}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1 md:col-span-2">
-              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Schematic File</label>
-              <input
-                type="file"
-                accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
-                onChange={(e) => setMapFile(e.target.files[0] || null)}
-                className="file:border-0 file:bg-slate-900 file:text-gold-400 file:px-4 file:py-2 file:rounded file:text-xs file:uppercase file:tracking-wider file:font-semibold file:cursor-pointer hover:file:bg-slate-800 border border-gray-200 p-3 rounded w-full bg-slate-50/50"
-              />
-            </div>
-
-          </div>
-
-          <button
-            onClick={uploadMap}
-            disabled={uploading}
-            className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 py-3 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer disabled:opacity-50"
-          >
-            {uploading ? "Uploading..." : "Upload Schematic"}
-          </button>
-
-          {/* Current maps */}
-          {(tenant?.floors || []).some((f) => f.mapUrl) && (
-            <div className="grid md:grid-cols-3 gap-6 mt-8">
-              {(tenant?.floors || [])
-                .filter((f) => f.mapUrl)
-                .map((f) => (
-                  <div key={f.floorNumber} className="border border-gray-200/60 rounded p-4 bg-slate-50/50">
-                    <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-2">
-                      {f.name || `Floor ${f.floorNumber}`}
-                    </p>
-                    <img
-                      src={`${API_URL}${f.mapUrl}`}
-                      alt={`Floor ${f.floorNumber} map`}
-                      className="w-full h-40 object-contain bg-white rounded border border-gray-100"
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+                    Schematic File
+                    <span className="ml-2 text-gray-400 normal-case tracking-normal font-normal">
+                      (SVG, PNG, JPG, WebP)
+                    </span>
+                  </label>
+                  <div className="border border-dashed border-gray-300 hover:border-gold-400 rounded-lg p-4 bg-slate-50/50 transition-colors">
+                    <input
+                      type="file"
+                      accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
+                      onChange={(e) => setMapFile(e.target.files[0] || null)}
+                      className="file:border-0 file:bg-slate-900 file:text-gold-400 file:px-4 file:py-2 file:rounded-lg file:text-xs file:uppercase file:tracking-wider file:font-semibold file:cursor-pointer hover:file:bg-slate-800 file:mr-4 text-sm text-gray-600 w-full"
                     />
+                    {mapFile && (
+                      <p className="text-xs text-gold-600 mt-2 font-medium">
+                        ✓ {mapFile.name}
+                      </p>
+                    )}
                   </div>
-                ))}
-            </div>
+                </div>
+              </div>
+
+              <button
+                onClick={uploadMap}
+                disabled={uploading}
+                className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-7 py-3 rounded-lg font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer hover:shadow-md disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Upload Schematic"}
+              </button>
+
+              {/* Uploaded maps preview */}
+              {(tenant?.floors || []).some((f) => f.mapUrl) && (
+                <div className="mt-8">
+                  <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-4">
+                    Uploaded Floor Plans
+                  </p>
+                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+                    {(tenant?.floors || [])
+                      .filter((f) => f.mapUrl)
+                      .map((f) => (
+                        <div
+                          key={f.floorNumber}
+                          className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors"
+                        >
+                          <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-3">
+                            {f.name || `Floor ${f.floorNumber}`}
+                          </p>
+                          <img
+                            src={`${API_URL}${f.mapUrl}`}
+                            alt={`Floor ${f.floorNumber} map`}
+                            className="w-full h-40 object-contain bg-white rounded border border-gray-100"
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
+        </SectionCard>
 
-        </div>
-
-        {/* Subscription & Billing */}
-        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
-
+        {/* ── Subscription & Billing ── */}
+        <SectionCard>
           <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
-            <h2 className="text-xl font-serif font-bold text-slate-900 tracking-wide uppercase">
-              Subscription & Billing
-            </h2>
-
-            <span className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
-              Current:{" "}
-              <span className="text-gold-600 capitalize">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 shrink-0">
+                <FiCreditCard size={16} />
+              </div>
+              <h2 className="text-xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+                Subscription &amp; Billing
+              </h2>
+            </div>
+            <div className="flex items-center gap-2 bg-slate-50 border border-gray-200 rounded-lg px-4 py-2">
+              <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Plan:</span>
+              <span className="text-xs font-bold text-gold-600 capitalize">
                 {subscription?.plan || "No plan"}
-              </span>{" "}
-              — {subscription?.subscriptionStatus || "..."}
-            </span>
+              </span>
+              <span className="text-gray-300 mx-1">·</span>
+              <span className={`text-xs font-bold capitalize ${
+                subscription?.subscriptionStatus === "Active" ? "text-green-600" :
+                subscription?.subscriptionStatus === "Trial" ? "text-blue-600" :
+                "text-orange-500"
+              }`}>
+                {subscription?.subscriptionStatus || "..."}
+              </span>
+            </div>
           </div>
 
           {subscription && !subscription.stripeConfigured && (
-            <p className="text-xs text-orange-600 uppercase tracking-wider mb-6 bg-orange-50 border border-orange-100 rounded p-3">
+            <p className="text-xs text-orange-600 uppercase tracking-wider mb-6 bg-orange-50 border border-orange-100 rounded-lg p-3">
               Stripe is not configured on the server yet — checkout is disabled until STRIPE_SECRET_KEY is set.
             </p>
           )}
 
-          <div className="grid md:grid-cols-3 gap-6">
-
+          <div className="grid md:grid-cols-3 gap-5">
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`border rounded p-6 flex flex-col relative overflow-hidden ${
+                className={`border rounded-lg p-6 flex flex-col relative overflow-hidden transition-all duration-300 ${
                   subscription?.plan === plan.id
-                    ? "border-gold-400 bg-slate-50/50"
-                    : "border-gray-200/60"
+                    ? "border-gold-400 bg-gold-400/5 shadow-md"
+                    : "border-gray-200 hover:border-gold-400/40 hover:shadow-sm"
                 }`}
               >
                 {subscription?.plan === plan.id && (
-                  <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
+                  <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400" />
                 )}
-
                 <h3 className="text-lg font-serif font-bold text-slate-900 uppercase tracking-wide">
                   {plan.name}
                 </h3>
-
                 <p className="mt-2 text-3xl font-serif font-bold text-gold-600">
                   <span className="text-base align-top">{plan.currency || "PKR"}</span>{" "}
                   {plan.price.toLocaleString()}
                   <span className="text-xs font-sans font-normal text-gray-400"> / month</span>
                 </p>
-
                 <ul className="mt-4 text-xs text-gray-600 space-y-2 flex-1 font-light">
                   {plan.features.map((f) => (
-                    <li key={f}>✓ {f}</li>
+                    <li key={f} className="flex items-start gap-1.5">
+                      <span className="text-gold-500 mt-0.5">✓</span> {f}
+                    </li>
                   ))}
                 </ul>
-
                 <button
                   onClick={() => subscribe(plan.id)}
                   disabled={subscription?.plan === plan.id}
-                  className={`mt-6 px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`mt-6 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                     subscription?.plan === plan.id
                       ? "bg-slate-900 text-gold-400 cursor-default"
-                      : "bg-gold-400 hover:bg-gold-500 text-slate-950 shadow"
+                      : "bg-gold-400 hover:bg-gold-500 text-slate-950 shadow hover:shadow-md"
                   }`}
                 >
                   {subscription?.plan === plan.id ? "Current Plan" : "Subscribe"}
                 </button>
-
               </div>
             ))}
-
           </div>
 
           {subscription?.plan && (
             <button
               onClick={openPortal}
-              className="mt-6 text-xs uppercase tracking-wider text-gold-600 underline cursor-pointer"
+              className="mt-6 text-xs uppercase tracking-wider text-gold-600 hover:text-gold-500 underline cursor-pointer transition-colors"
             >
               Manage billing / cancel subscription
             </button>
           )}
+        </SectionCard>
 
-        </div>
-
-        {/* Chat Moderation */}
-        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-red-500/40"></div>
-
-          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
-            Recent Chat Moderation Queue
-          </h2>
+        {/* ── Chat Moderation ── */}
+        <SectionCard accent="red">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shrink-0">
+              <FiAlertTriangle size={16} />
+            </div>
+            <h2 className="text-xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+              Chat Moderation Queue
+            </h2>
+            {reported.length > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                {reported.length}
+              </span>
+            )}
+          </div>
 
           {reported.length === 0 ? (
-            <div className="p-6 bg-slate-50 rounded border border-gray-100 text-center text-gray-500 text-sm">
-              No flagged or reported tenant messages in queue. 🎉
+            <div className="p-8 bg-slate-50 rounded-lg border border-gray-100 text-center">
+              <p className="text-gray-500 text-sm">
+                🎉 No flagged or reported tenant messages in queue.
+              </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg border border-gray-100">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-900 text-gold-400 text-xs uppercase tracking-widest font-serif border-b border-gold-400/20">
@@ -539,9 +527,9 @@ function BuildingAdminDashboard() {
                       <td className="p-4 text-center">
                         <button
                           onClick={() => deleteMessage(msg._id)}
-                          className="bg-red-500 text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition-all hover:bg-red-600 cursor-pointer"
+                          className="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all hover:bg-red-600 cursor-pointer"
                         >
-                          Remove Message
+                          Remove
                         </button>
                       </td>
                     </tr>
@@ -550,8 +538,7 @@ function BuildingAdminDashboard() {
               </table>
             </div>
           )}
-
-        </div>
+        </SectionCard>
 
       </div>
     </MainLayout>

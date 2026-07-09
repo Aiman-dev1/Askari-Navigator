@@ -66,3 +66,62 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #a1762e;
 }
+
+/* ── Entrance Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50%       { opacity: 0.30; transform: scale(1.08); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.75s ease both;
+}
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s ease both;
+}
+.animate-fade-in {
+  animation: fadeIn 0.8s ease both;
+}
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+.animate-delay-400 { animation-delay: 0.4s; }
+.animate-delay-500 { animation-delay: 0.5s; }
+.animate-delay-600 { animation-delay: 0.6s; }
+.animate-delay-700 { animation-delay: 0.7s; }
+
+.pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}

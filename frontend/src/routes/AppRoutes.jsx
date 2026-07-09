@@ -6,6 +6,7 @@ import Register from "../pages/Register";
 import UserDashboard from "../pages/UserDashboard";
 import BuildingAdminDashboard from "../pages/BuildingAdminDashboard";
 import BuildingAdminFaqs from "../pages/BuildingAdminFaqs";
+import InfoSheet from "../pages/InfoSheet";
 import SuperAdminDashboard from "../pages/SuperAdminDashboard";
 import Navigation from "../pages/Navigation";
 import Chat from "../pages/Chat";
@@ -39,6 +40,14 @@ function AppRoutes() {
         element={
           <Protected roles={["tenant_admin"]}>
             <BuildingAdminFaqs />
+          </Protected>
+        }
+      />
+      <Route
+        path="/building-admin/info-sheet"
+        element={
+          <Protected roles={["tenant_admin"]}>
+            <InfoSheet />
           </Protected>
         }
       />

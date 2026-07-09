@@ -75,6 +75,13 @@ function Navbar({ isHome }) {
             <Link to="/navigation" className="hover:text-gold-400 transition-colors duration-300">Navigation</Link>
           )}
 
+          {user?.role === "tenant_admin" && (
+            <>
+              <Link to="/building-admin/faqs" className="hover:text-gold-400 transition-colors duration-300">Manage FAQs</Link>
+              <Link to="/building-admin/info-sheet" className="hover:text-gold-400 transition-colors duration-300">Info Sheet</Link>
+            </>
+          )}
+
           {/* Greeting + settings dropdown */}
           <div className="flex items-center gap-3 pl-4 border-l border-gold-400/20" ref={menuRef}>
 
@@ -132,6 +139,7 @@ function Navbar({ isHome }) {
           </div>
 
         </div>
+
 
       )}
 
