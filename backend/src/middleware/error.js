@@ -15,6 +15,10 @@ export function errorHandler(err, req, res, next) {
   if (err.name === "CastError") {
     return res.status(400).json({ error: `Invalid ${err.path}: ${err.value}` });
   }
+  // Multer errors (file too large, unexpected field, ...)
+  if (err.name === "MulterError") {
+    return res.status(400).json({ error: err.message });
+  }
   console.error(err);
   res.status(err.status || 500).json({ error: err.message || "Internal server error" });
 }

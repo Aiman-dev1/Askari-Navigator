@@ -58,6 +58,36 @@ export async function updateTenant(req, res, next) {
   }
 }
 
+// POST /api/v1/tenants/mine/floors/:floorNumber/map  (tenant admin)
+// Uploads an SVG floor plan; creates the floor entry if it doesn't exist yet.
+export async function uploadFloorMap(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded (field name: map)" });
+
+    const floorNumber = parseInt(req.params.floorNumber, 10);
+    if (Number.isNaN(floorNumber)) {
+      return res.status(400).json({ error: "Invalid floor number" });
+    }
+
+    const tenant = await Tenant.findById(req.user.tenantId);
+    if (!tenant) return res.status(404).json({ error: "Tenant not found" });
+
+    const mapUrl = `/uploads/${req.file.filename}`;
+    const floor = tenant.floors.find((f) => f.floorNumber === floorNumber);
+    if (floor) {
+      floor.mapUrl = mapUrl;
+    } else {
+      tenant.floors.push({ floorNumber, name: `Floor ${floorNumber}`, mapUrl });
+      tenant.floors.sort((a, b) => a.floorNumber - b.floorNumber);
+    }
+    await tenant.save();
+
+    res.json({ floorNumber, mapUrl, tenant });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // GET /api/v1/tenants/slug/:slug  (public) — minimal info for guest onboarding
 export async function getTenantBySlug(req, res, next) {
   try {

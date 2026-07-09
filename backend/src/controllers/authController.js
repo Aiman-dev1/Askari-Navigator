@@ -104,3 +104,26 @@ export async function me(req, res, next) {
     next(err);
   }
 }
+
+// PATCH /api/v1/auth/me  { username }
+// The JWT embeds the username (chat uses it as the sender name), so a
+// fresh token is returned along with the updated profile.
+export async function updateMe(req, res, next) {
+  try {
+    const username = (req.body.username || "").trim();
+    if (!username) return res.status(400).json({ error: "username is required" });
+    if (username.length < 2 || username.length > 30) {
+      return res.status(400).json({ error: "Username must be 2–30 characters" });
+    }
+
+    const user = await User.findById(req.user.sub);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.username = username;
+    await user.save(); // duplicate within the building → 409 via error handler
+
+    res.json({ token: signToken(user), user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+}

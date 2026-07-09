@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
-import { api } from "../lib/api";
+import { api, API_URL } from "../lib/api";
 
 function BuildingAdminDashboard() {
   const [offices, setOffices] = useState([]);
   const [reported, setReported] = useState([]);
-  const [floorCount, setFloorCount] = useState(0);
+  const [tenant, setTenant] = useState(null);
   const [faqs, setFaqs] = useState([]);
 
   const [office, setOffice] = useState({
@@ -17,6 +17,13 @@ function BuildingAdminDashboard() {
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+
+  const [mapFloor, setMapFloor] = useState("");
+  const [mapFile, setMapFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const [subscription, setSubscription] = useState(null);
+  const [plans, setPlans] = useState([]);
 
   useEffect(() => {
     api
@@ -31,14 +38,64 @@ function BuildingAdminDashboard() {
 
     api
       .get("/tenants/mine")
-      .then((data) => setFloorCount(data.tenant.floors?.length || 0))
+      .then((data) => setTenant(data.tenant))
       .catch(() => {});
 
     api
       .get("/faqs")
       .then((data) => setFaqs(data.faqs))
       .catch((err) => toast.error(err.message));
+
+    api
+      .get("/billing/subscription")
+      .then(setSubscription)
+      .catch(() => {});
+
+    api
+      .get("/billing/plans")
+      .then((data) => setPlans(data.plans))
+      .catch(() => {});
+
+    // Feedback after returning from Stripe Checkout
+    const billing = new URLSearchParams(window.location.search).get("billing");
+    if (billing === "success") toast.success("Subscription activated — thank you!");
+    if (billing === "cancelled") toast("Checkout cancelled", { icon: "ℹ️" });
   }, []);
+
+  const uploadMap = async () => {
+    if (mapFloor === "" || !mapFile) return toast.error("Pick a floor and a plan image");
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("map", mapFile);
+      const data = await api.upload(`/tenants/mine/floors/${mapFloor}/map`, formData);
+      setTenant(data.tenant);
+      setMapFile(null);
+      toast.success(`Floor ${mapFloor} map uploaded`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const subscribe = async (planId) => {
+    try {
+      const data = await api.post("/billing/checkout", { planId });
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const openPortal = async () => {
+    try {
+      const data = await api.post("/billing/portal");
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   const addFaq = async () => {
     if (!question || !answer) return;
@@ -132,7 +189,7 @@ function BuildingAdminDashboard() {
 
           <div className="bg-slate-900 border border-gold-400/20 text-white rounded p-6 shadow-md relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
-            <h2 className="text-4xl font-serif font-bold text-gold-400">{floorCount}</h2>
+            <h2 className="text-4xl font-serif font-bold text-gold-400">{tenant?.floors?.length || 0}</h2>
             <p className="text-xs uppercase tracking-widest text-gray-400 mt-2 font-medium">Floors</p>
           </div>
 
@@ -305,18 +362,150 @@ function BuildingAdminDashboard() {
         <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
 
-          <h2 className="text-xl font-serif font-bold text-slate-900 mb-4 tracking-wide uppercase">
+          <h2 className="text-xl font-serif font-bold text-slate-900 mb-6 tracking-wide uppercase">
             Floor Map Schematic Upload
           </h2>
 
-          <input
-            type="file"
-            className="file:border-0 file:bg-slate-900 file:text-gold-400 file:px-4 file:py-2 file:rounded file:text-xs file:uppercase file:tracking-wider file:font-semibold file:cursor-pointer hover:file:bg-slate-800 border border-gray-200 p-3 rounded w-full bg-slate-50/50"
-          />
+          <div className="grid md:grid-cols-3 gap-6">
 
-          <p className="text-gray-400 text-xs mt-3 uppercase tracking-wider">
-            Schematic upload is currently mocked for staging environment testing.
-          </p>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Floor Level</label>
+              <select
+                value={mapFloor}
+                onChange={(e) => setMapFloor(e.target.value)}
+                className="border border-gray-200 p-3 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
+              >
+                <option value="">Select floor...</option>
+                {(tenant?.floors || []).map((f) => (
+                  <option key={f.floorNumber} value={f.floorNumber}>
+                    {f.name || `Floor ${f.floorNumber}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-1">Schematic File</label>
+              <input
+                type="file"
+                accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
+                onChange={(e) => setMapFile(e.target.files[0] || null)}
+                className="file:border-0 file:bg-slate-900 file:text-gold-400 file:px-4 file:py-2 file:rounded file:text-xs file:uppercase file:tracking-wider file:font-semibold file:cursor-pointer hover:file:bg-slate-800 border border-gray-200 p-3 rounded w-full bg-slate-50/50"
+              />
+            </div>
+
+          </div>
+
+          <button
+            onClick={uploadMap}
+            disabled={uploading}
+            className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-6 py-3 rounded font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer disabled:opacity-50"
+          >
+            {uploading ? "Uploading..." : "Upload Schematic"}
+          </button>
+
+          {/* Current maps */}
+          {(tenant?.floors || []).some((f) => f.mapUrl) && (
+            <div className="grid md:grid-cols-3 gap-6 mt-8">
+              {(tenant?.floors || [])
+                .filter((f) => f.mapUrl)
+                .map((f) => (
+                  <div key={f.floorNumber} className="border border-gray-200/60 rounded p-4 bg-slate-50/50">
+                    <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-2">
+                      {f.name || `Floor ${f.floorNumber}`}
+                    </p>
+                    <img
+                      src={`${API_URL}${f.mapUrl}`}
+                      alt={`Floor ${f.floorNumber} map`}
+                      className="w-full h-40 object-contain bg-white rounded border border-gray-100"
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
+
+        </div>
+
+        {/* Subscription & Billing */}
+        <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 mb-10 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40"></div>
+
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
+            <h2 className="text-xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+              Subscription & Billing
+            </h2>
+
+            <span className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+              Current:{" "}
+              <span className="text-gold-600 capitalize">
+                {subscription?.plan || "No plan"}
+              </span>{" "}
+              — {subscription?.subscriptionStatus || "..."}
+            </span>
+          </div>
+
+          {subscription && !subscription.stripeConfigured && (
+            <p className="text-xs text-orange-600 uppercase tracking-wider mb-6 bg-orange-50 border border-orange-100 rounded p-3">
+              Stripe is not configured on the server yet — checkout is disabled until STRIPE_SECRET_KEY is set.
+            </p>
+          )}
+
+          <div className="grid md:grid-cols-3 gap-6">
+
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`border rounded p-6 flex flex-col relative overflow-hidden ${
+                  subscription?.plan === plan.id
+                    ? "border-gold-400 bg-slate-50/50"
+                    : "border-gray-200/60"
+                }`}
+              >
+                {subscription?.plan === plan.id && (
+                  <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
+                )}
+
+                <h3 className="text-lg font-serif font-bold text-slate-900 uppercase tracking-wide">
+                  {plan.name}
+                </h3>
+
+                <p className="mt-2 text-3xl font-serif font-bold text-gold-600">
+                  <span className="text-base align-top">{plan.currency || "PKR"}</span>{" "}
+                  {plan.price.toLocaleString()}
+                  <span className="text-xs font-sans font-normal text-gray-400"> / month</span>
+                </p>
+
+                <ul className="mt-4 text-xs text-gray-600 space-y-2 flex-1 font-light">
+                  {plan.features.map((f) => (
+                    <li key={f}>✓ {f}</li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => subscribe(plan.id)}
+                  disabled={subscription?.plan === plan.id}
+                  className={`mt-6 px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    subscription?.plan === plan.id
+                      ? "bg-slate-900 text-gold-400 cursor-default"
+                      : "bg-gold-400 hover:bg-gold-500 text-slate-950 shadow"
+                  }`}
+                >
+                  {subscription?.plan === plan.id ? "Current Plan" : "Subscribe"}
+                </button>
+
+              </div>
+            ))}
+
+          </div>
+
+          {subscription?.plan && (
+            <button
+              onClick={openPortal}
+              className="mt-6 text-xs uppercase tracking-wider text-gold-600 underline cursor-pointer"
+            >
+              Manage billing / cancel subscription
+            </button>
+          )}
 
         </div>
 

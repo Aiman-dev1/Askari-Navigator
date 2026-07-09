@@ -12,7 +12,14 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [matching, setMatching] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]); // [{ username, roomId }]
   const bottomRef = useRef(null);
+  const typingTimersRef = useRef(new Map()); // username -> expiry timeout
+  const lastTypingSentRef = useRef(0);
+  const stopTypingTimerRef = useRef(null);
+
+  // Per-user "clear conversation" marker — hides messages older than this
+  const clearedKey = (roomId) => `towernav_cleared_${user?.id}_${roomId}`;
 
   // Load rooms once, hook up socket listeners
   useEffect(() => {
@@ -43,14 +50,39 @@ function Chat() {
       setActiveRoom(room);
     };
 
+    const removeTyping = (username) => {
+      clearTimeout(typingTimersRef.current.get(username));
+      typingTimersRef.current.delete(username);
+      setTypingUsers((prev) => prev.filter((t) => t.username !== username));
+    };
+
+    const onUserTyping = ({ username, roomId }) => {
+      setTypingUsers((prev) =>
+        prev.some((t) => t.username === username)
+          ? prev
+          : [...prev, { username, roomId }]
+      );
+      // Auto-expire in case the stop event never arrives
+      clearTimeout(typingTimersRef.current.get(username));
+      typingTimersRef.current.set(username, setTimeout(() => removeTyping(username), 3000));
+    };
+
+    const onUserStoppedTyping = ({ username }) => removeTyping(username);
+
     socket.on("new_message", onNewMessage);
     socket.on("match_found", onMatchFound);
+    socket.on("user_typing", onUserTyping);
+    socket.on("user_stopped_typing", onUserStoppedTyping);
     socket.on("connect_error", (err) => toast.error(`Chat: ${err.message}`));
 
     return () => {
       socket.off("new_message", onNewMessage);
       socket.off("match_found", onMatchFound);
+      socket.off("user_typing", onUserTyping);
+      socket.off("user_stopped_typing", onUserStoppedTyping);
       socket.off("connect_error");
+      typingTimersRef.current.forEach((t) => clearTimeout(t));
+      typingTimersRef.current.clear();
     };
   }, []);
 
@@ -63,21 +95,27 @@ function Chat() {
       if (res?.error) toast.error(res.error);
     });
 
+    const clearedAt = localStorage.getItem(clearedKey(activeRoom._id));
+
     api
       .get(`/chat/rooms/${activeRoom._id}/messages`)
       .then((data) =>
         setMessages(
-          data.messages.map((m) => ({
-            id: m._id,
-            roomId: m.roomId,
-            sender: m.senderName,
-            senderId: m.senderId,
-            message: m.message,
-            createdAt: m.createdAt,
-          }))
+          data.messages
+            .filter((m) => !clearedAt || new Date(m.createdAt) > new Date(clearedAt))
+            .map((m) => ({
+              id: m._id,
+              roomId: m.roomId,
+              sender: m.senderName,
+              senderId: m.senderId,
+              message: m.message,
+              createdAt: m.createdAt,
+            }))
         )
       )
       .catch((err) => toast.error(err.message));
+
+    setTypingUsers([]);
 
     return () => socket.emit("leave_room", activeRoom._id);
   }, [activeRoom]);
@@ -88,12 +126,42 @@ function Chat() {
 
   const sendMessage = () => {
     if (text.trim() === "" || !activeRoom) return;
-    getSocket().emit(
+    const socket = getSocket();
+    socket.emit(
       "send_message",
       { roomId: activeRoom._id, message: text },
       (res) => res?.error && toast.error(res.error)
     );
+    clearTimeout(stopTypingTimerRef.current);
+    socket.emit("stop_typing", activeRoom._id);
     setText("");
+  };
+
+  // Broadcast "typing" (throttled), then "stop_typing" after a pause
+  const handleTyping = (value) => {
+    setText(value);
+    if (!activeRoom) return;
+
+    const socket = getSocket();
+    const now = Date.now();
+    if (now - lastTypingSentRef.current > 1500) {
+      lastTypingSentRef.current = now;
+      socket.emit("typing", activeRoom._id);
+    }
+
+    clearTimeout(stopTypingTimerRef.current);
+    stopTypingTimerRef.current = setTimeout(
+      () => socket.emit("stop_typing", activeRoom._id),
+      2000
+    );
+  };
+
+  // Hides the room's history for this user only — others keep theirs
+  const clearConversation = () => {
+    if (!activeRoom) return;
+    localStorage.setItem(clearedKey(activeRoom._id), new Date().toISOString());
+    setMessages([]);
+    toast.success("Conversation cleared");
   };
 
   const shuffleChat = () => {
@@ -181,6 +249,15 @@ function Chat() {
               <span className="text-xs uppercase tracking-widest text-gold-600 font-bold font-serif">
                 {activeRoom ? `# ${activeRoom.name}` : "Select a room"}
               </span>
+
+              {activeRoom && messages.length > 0 && (
+                <button
+                  onClick={clearConversation}
+                  className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             <div className="h-96 overflow-y-auto border border-gray-100 rounded p-6 mb-6 bg-slate-50/30">
@@ -210,6 +287,26 @@ function Chat() {
 
             </div>
 
+            {/* Typing indicator */}
+            <div className="h-5 mb-2 px-1">
+              {(() => {
+                const names = typingUsers
+                  .filter((t) => t.roomId === activeRoom?._id)
+                  .map((t) => t.username);
+                if (names.length === 0) return null;
+                return (
+                  <span className="text-[10px] uppercase tracking-widest text-gold-600 font-bold animate-pulse">
+                    {names.length === 1
+                      ? `${names[0]} is typing`
+                      : names.length === 2
+                      ? `${names[0]} and ${names[1]} are typing`
+                      : "Several tenants are typing"}
+                    <span className="tracking-normal">...</span>
+                  </span>
+                );
+              })()}
+            </div>
+
             <div className="flex gap-3">
 
               <input
@@ -218,7 +315,7 @@ function Chat() {
                   activeRoom ? `Type message in board ${activeRoom.name}...` : "Select a board to start chat..."
                 }
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => handleTyping(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 className="flex-1 border border-gray-200 rounded p-3 text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
               />

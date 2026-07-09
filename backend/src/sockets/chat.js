@@ -1,4 +1,5 @@
 import { verifyToken } from "../utils/jwt.js";
+import { cleanMessage } from "../utils/profanity.js";
 import ChatRoom from "../models/ChatRoom.js";
 import Message from "../models/Message.js";
 
@@ -54,9 +55,21 @@ export function initChatSockets(io) {
       socket.to(socketRoomName(tenantId, roomId)).emit("user_left", { username, roomId });
     });
 
+    // --- Typing indicator ---------------------------------------------
+
+    socket.on("typing", (roomId) => {
+      socket.to(socketRoomName(tenantId, roomId)).emit("user_typing", { username, roomId });
+    });
+
+    socket.on("stop_typing", (roomId) => {
+      socket
+        .to(socketRoomName(tenantId, roomId))
+        .emit("user_stopped_typing", { username, roomId });
+    });
+
     socket.on("send_message", async ({ roomId, message }, ack) => {
       try {
-        const text = (message || "").trim();
+        const text = cleanMessage((message || "").trim());
         if (!text) return ack?.({ error: "Message is empty" });
 
         const room = await ChatRoom.findOne({ _id: roomId, tenantId });

@@ -41,7 +41,8 @@ Auth: `Authorization: Bearer <token>` (token returned by register/login/guest).
 | DELETE | /offices/:id                   | tenant admin | Delete entry                         |
 | GET    | /tenants/slug/:slug            | public       | Building info for onboarding         |
 | GET    | /tenants/mine                  | tenant admin | Own building                         |
-| PUT    | /tenants/mine/floors           | tenant admin | Upload/replace floor plans (SVG URL) |
+| PUT    | /tenants/mine/floors           | tenant admin | Replace floor list                   |
+| POST   | /tenants/mine/floors/:n/map    | tenant admin | Upload floor plan image (field: `map`) |
 | GET    | /tenants                       | super admin  | All buildings                        |
 | POST   | /tenants                       | super admin  | Onboard building (+ admin account)   |
 | PATCH  | /tenants/:id                   | super admin  | Update subscription status etc.      |
@@ -55,6 +56,18 @@ Auth: `Authorization: Bearer <token>` (token returned by register/login/guest).
 | POST   | /chat/messages/:id/report      | any          | Report a message                     |
 | GET    | /chat/reported                 | tenant admin | Moderation queue                     |
 | DELETE | /chat/messages/:id             | tenant admin | Remove a message                     |
+| GET    | /billing/plans                 | public       | Plan catalogue                       |
+| GET    | /billing/subscription          | tenant admin | Own plan + status                    |
+| POST   | /billing/checkout              | tenant admin | Stripe Checkout session URL          |
+| POST   | /billing/portal                | tenant admin | Stripe customer portal URL           |
+| POST   | /billing/webhook               | Stripe       | Subscription lifecycle events        |
+
+Uploaded floor plans (SVG/PNG/JPG/WebP) are served at `/uploads/`. The seed and
+`npm run floorplans` install the bundled Askari Corporate Tower schematics
+(Ground + Floors 1–13) from `assets/floorplans/`. Chat messages pass
+through a server-side profanity filter before being stored/broadcast. Stripe
+endpoints return 503 until `STRIPE_*` env vars are configured (see `.env.example`
+and `docs/DEPLOYMENT.md`).
 
 ## Socket.io events
 

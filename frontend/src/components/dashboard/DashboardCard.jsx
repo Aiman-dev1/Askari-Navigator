@@ -1,7 +1,22 @@
-function DashboardCard({ title, description }) {
+import { useNavigate } from "react-router-dom";
+
+function DashboardCard({ title, description, to, onClick }) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (to) navigate(to);
+    else if (onClick) onClick();
+  };
+
   return (
-    <div className="bg-white border border-gray-200/60 shadow-md hover:border-gold-400/50 rounded p-8 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group">
-      
+    <div
+      onClick={handleClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleClick()}
+      className="bg-white border border-gray-200/60 shadow-md hover:border-gold-400/50 rounded p-8 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group cursor-pointer focus:outline-none focus:border-gold-400"
+    >
+
       {/* Decorative Top Accent line */}
       <div className="absolute top-0 left-0 w-full h-[3px] bg-transparent group-hover:bg-gold-400 transition-colors duration-300"></div>
 
@@ -12,6 +27,10 @@ function DashboardCard({ title, description }) {
       <p className="text-gray-500 text-sm leading-relaxed font-light">
         {description}
       </p>
+
+      <span className="inline-block mt-4 text-[10px] uppercase tracking-widest font-bold text-gold-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        Open →
+      </span>
 
     </div>
   );

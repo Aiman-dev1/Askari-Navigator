@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { api, storeSession, clearSession, getStoredUser, getToken } from "../lib/api";
 import { disconnectSocket } from "../lib/socket";
 
@@ -10,7 +10,23 @@ export const DEFAULT_TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG || "apex-tow
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getStoredUser);
 
+  // The session lives in localStorage, which is shared by every tab of this
+  // browser. If another tab logs in/out, adopt that session here too and drop
+  // the socket so it reconnects under the new identity.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "towernav_user" || e.key === "towernav_token") {
+        disconnectSocket();
+        setUser(getStoredUser());
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const finishLogin = (data) => {
+    // Kill any socket from a previous identity before switching accounts
+    disconnectSocket();
     storeSession(data.token, data.user);
     setUser(data.user);
     return data.user;
@@ -32,6 +48,11 @@ export function AuthProvider({ children }) {
   const guestLogin = async (username) =>
     finishLogin(await api.post("/auth/guest", { username, tenantSlug: DEFAULT_TENANT_SLUG }));
 
+  // Server returns a fresh token (the username is embedded in it), so this
+  // goes through the same session/socket reset as a login
+  const updateUsername = async (username) =>
+    finishLogin(await api.patch("/auth/me", { username }));
+
   const logout = () => {
     disconnectSocket();
     clearSession();
@@ -40,7 +61,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!getToken(), login, register, guestLogin, logout }}
+      value={{ user, isAuthenticated: !!getToken(), login, register, guestLogin, updateUsername, logout }}
     >
       {children}
     </AuthContext.Provider>

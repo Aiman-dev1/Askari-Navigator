@@ -1,14 +1,29 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { FiSettings, FiUser, FiLogOut } from "react-icons/fi";
+import { useAuth, homeRouteFor } from "../../context/AuthContext";
 
 function Navbar({ isHome }) {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const handleLogout = () => {
+    setMenuOpen(false);
     logout();
     navigate("/");
   };
+
+  // Close the dropdown when clicking anywhere outside it
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [menuOpen]);
 
   return (
     <nav className="bg-slate-900/90 backdrop-blur-md text-white px-8 py-4 flex justify-between items-center border-b border-gold-400/10 shadow-xl sticky top-0 z-50">
@@ -54,22 +69,67 @@ function Navbar({ isHome }) {
 
         <div className="flex items-center gap-6 text-sm uppercase tracking-wider font-semibold">
 
-          <Link to="/user" className="hover:text-gold-400 transition-colors duration-300">Dashboard</Link>
+          <Link to={homeRouteFor(user)} className="hover:text-gold-400 transition-colors duration-300">Dashboard</Link>
 
-          <Link to="/navigation" className="hover:text-gold-400 transition-colors duration-300">Navigation</Link>
+          {user?.role === "user" && (
+            <Link to="/navigation" className="hover:text-gold-400 transition-colors duration-300">Navigation</Link>
+          )}
 
-          <Link to="/chat" className="hover:text-gold-400 transition-colors duration-300">Chat</Link>
+          {/* Greeting + settings dropdown */}
+          <div className="flex items-center gap-3 pl-4 border-l border-gold-400/20" ref={menuRef}>
 
-          <Link to="/ai" className="hover:text-gold-400 transition-colors duration-300">AI</Link>
+            <span className="text-gold-400 font-serif normal-case tracking-normal text-sm">
+              Hi, <span className="font-bold">{user?.username}</span>
+            </span>
 
-          <Link to="/profile" className="hover:text-gold-400 transition-colors duration-300">Profile</Link>
+            <div className="relative">
 
-          <button
-            onClick={handleLogout}
-            className="border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded transition-all duration-300 cursor-pointer uppercase tracking-wider text-xs font-bold"
-          >
-            Logout
-          </button>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Account menu"
+                aria-expanded={menuOpen}
+                className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                  menuOpen
+                    ? "border-gold-400 text-gold-400 bg-slate-800"
+                    : "border-gold-400/30 text-gray-300 hover:text-gold-400 hover:border-gold-400"
+                }`}
+              >
+                <FiSettings size={16} className={menuOpen ? "rotate-90 transition-transform duration-300" : "transition-transform duration-300"} />
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-3 w-48 bg-slate-900 border border-gold-400/20 rounded shadow-2xl overflow-hidden">
+
+                  <div className="px-4 py-3 border-b border-gold-400/10">
+                    <p className="text-[10px] uppercase tracking-widest text-gray-400">Signed in as</p>
+                    <p className="text-gold-400 font-serif font-bold text-sm truncate normal-case tracking-normal">
+                      {user?.username}
+                    </p>
+                  </div>
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-xs uppercase tracking-wider text-gray-300 hover:bg-slate-800 hover:text-gold-400 transition-colors"
+                  >
+                    <FiUser size={14} />
+                    Profile
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-xs uppercase tracking-wider text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <FiLogOut size={14} />
+                    Logout
+                  </button>
+
+                </div>
+              )}
+
+            </div>
+
+          </div>
 
         </div>
 

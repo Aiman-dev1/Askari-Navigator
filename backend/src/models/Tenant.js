@@ -18,6 +18,14 @@ const tenantSchema = new mongoose.Schema(
       enum: ["Trial", "Active", "Suspended", "Cancelled"],
       default: "Trial",
     },
+    plan: {
+      type: String,
+      enum: ["basic", "professional", "enterprise", null],
+      default: null,
+    },
+    stripeCustomerId: { type: String, default: null },
+    stripeSubscriptionId: { type: String, default: null },
+    currentPeriodEnd: { type: Date, default: null },
     floors: [floorSchema],
     settings: {
       allowGuests: { type: Boolean, default: true },

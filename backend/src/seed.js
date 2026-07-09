@@ -11,6 +11,7 @@ import Office from "./models/Office.js";
 import ChatRoom from "./models/ChatRoom.js";
 import Message from "./models/Message.js";
 import Faq from "./models/Faq.js";
+import { installFloorPlans } from "./utils/floorplans.js";
 
 const OFFICES = [
   {
@@ -96,14 +97,68 @@ const OFFICES = [
   },
 ];
 
-// Mirrors src/data/faqs.js on the frontend
+// Building FAQs based on Askari Corporate Tower (askaricorporatetower.com).
+// "Where is <office>?" questions don't need FAQs — the assistant falls back
+// to the office directory for those.
 const FAQS = [
-  { question: "Where is the HR department?", answer: "HR Department is on 4th Floor, Room 402." },
-  { question: "Where is the finance department?", answer: "Finance Department is on 3rd Floor, Room 305." },
-  { question: "Where is the IT department?", answer: "IT Department is on 5th Floor, Room 501." },
-  { question: "Where is the cafeteria?", answer: "Cafeteria is on 1st Floor, Room 110." },
-  { question: "What are the office timings?", answer: "Office timing is Monday to Friday, 9:00 AM to 5:00 PM." },
-  { question: "Where is the reception?", answer: "Reception is on the Ground Floor." },
+  {
+    question: "Where is the tower located?",
+    answer:
+      "Askari Corporate Tower is at Liberty Roundabout, Main Boulevard, Gulberg III, Lahore.",
+  },
+  {
+    question: "Is car parking available?",
+    answer:
+      "Yes — the tower has 4 dedicated basement levels of reserved car parking. Your access card shows your assigned level.",
+  },
+  {
+    question: "How many floors does the building have?",
+    answer:
+      "14 floors in total (Ground plus 13 upper floors), with 4 basement parking levels below.",
+  },
+  {
+    question: "What are the building timings?",
+    answer:
+      "The tower is open Monday to Saturday, 8:00 AM to 10:00 PM. Reception and security are staffed 24/7.",
+  },
+  {
+    question: "Is there a prayer area in the building?",
+    answer: "Yes, a dedicated prayer area is available on the premises.",
+  },
+  {
+    question: "Is there a gym in the tower?",
+    answer: "Yes — the tower has a gymnasium available for tenants and their staff.",
+  },
+  {
+    question: "How many elevators are there?",
+    answer:
+      "There are 6 AI-based elevators in the central core. Tap your access card and select your floor.",
+  },
+  {
+    question: "What happens during a power outage?",
+    answer:
+      "Nothing — the tower runs on 5.1 MW backup generators plus a solar energy system, so offices stay powered at all times.",
+  },
+  {
+    question: "Is there internet connectivity in the building?",
+    answer:
+      "Yes, all offices connect through the tower's FTTO fiber-optic broadband network.",
+  },
+  {
+    question: "How does building security work?",
+    answer:
+      "The tower uses a smart multi-tier security system with access-controlled speed gates at the entrance. Visitors must register at the Ground Floor reception to receive a pass.",
+  },
+  {
+    question: "How can I rent or buy an office in the tower?",
+    answer:
+      "Contact the marketing office at (+92) 333 5374535 or visit the Ground Floor reception — executive and furnished offices are available on several floors.",
+  },
+  {
+    question: "Is the building environmentally friendly?",
+    answer:
+      "Yes — Askari Corporate Tower is LEED Gold certified by the US Green Building Council, with solar power and energy-efficient systems.",
+  },
 ];
 
 async function seed() {
@@ -132,11 +187,8 @@ async function seed() {
     buildingName: "Apex Tower",
     slug: "apex-tower",
     subscriptionStatus: "Active",
-    floors: [0, 1, 2, 3, 4, 5].map((n) => ({
-      floorNumber: n,
-      name: n === 0 ? "Ground Floor" : `Floor ${n}`,
-      mapUrl: "",
-    })),
+    // Ground + Floors 1–13 with real floor plan schematics
+    floors: installFloorPlans(),
   });
 
   const tenantAdmin = new User({

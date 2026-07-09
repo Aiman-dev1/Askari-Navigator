@@ -141,6 +141,7 @@ function SuperAdminDashboard() {
                 <tr className="bg-slate-900 text-gold-400 text-xs uppercase tracking-widest font-serif border-b border-gold-400/20">
                   <th className="p-4">Building Name</th>
                   <th className="p-4">Slug</th>
+                  <th className="p-4">Plan</th>
                   <th className="p-4">Subscription Status</th>
                   <th className="p-4 text-center">Action / Update Status</th>
                 </tr>
@@ -150,6 +151,7 @@ function SuperAdminDashboard() {
                   <tr key={t._id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 text-sm font-semibold text-slate-900">{t.buildingName}</td>
                     <td className="p-4 text-sm text-gray-600 font-mono">{t.slug}</td>
+                    <td className="p-4 text-sm text-gray-600 capitalize">{t.plan || "—"}</td>
                     <td className="p-4 text-sm font-medium">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         t.subscriptionStatus === "Active" ? "bg-green-100 text-green-700" :
@@ -191,7 +193,7 @@ function SuperAdminDashboard() {
 
             <div className="border border-gray-200 hover:border-gold-400 rounded p-6 hover:shadow-lg transition-all duration-300 relative group">
               <h3 className="text-lg font-serif font-bold text-slate-950 group-hover:text-gold-600 transition-colors">Basic</h3>
-              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">$29 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
+              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">PKR 500 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
               <div className="mt-4 text-xs text-gray-500 space-y-1 font-light">
                 <p>• Up to 20 office listings</p>
                 <p>• Basic indoor navigation paths</p>
@@ -202,7 +204,7 @@ function SuperAdminDashboard() {
             <div className="border border-gold-400/50 bg-gold-50/10 rounded p-6 shadow-md relative group">
               <div className="absolute top-0 right-4 bg-gold-400 text-slate-950 text-[9px] uppercase tracking-widest font-bold px-3 py-1 rounded-b">Popular</div>
               <h3 className="text-lg font-serif font-bold text-slate-950">Professional</h3>
-              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">$79 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
+              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">PKR 1,779 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
               <div className="mt-4 text-xs text-gray-500 space-y-1 font-light">
                 <p>• Unlimited office directories</p>
                 <p>• Advanced step schematic paths</p>
@@ -213,7 +215,7 @@ function SuperAdminDashboard() {
 
             <div className="border border-gray-200 hover:border-gold-400 rounded p-6 hover:shadow-lg transition-all duration-300 relative group">
               <h3 className="text-lg font-serif font-bold text-slate-950 group-hover:text-gold-600 transition-colors">Enterprise</h3>
-              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">$199 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
+              <p className="mt-2 text-2xl font-bold font-serif text-gold-500">PKR 2,990 <span className="text-xs font-sans text-gray-500 font-light">/ month</span></p>
               <div className="mt-4 text-xs text-gray-500 space-y-1 font-light">
                 <p>• Dedicated custom domain mappings</p>
                 <p>• Priority 24/7 technical assistance</p>

@@ -5,10 +5,10 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import UserDashboard from "../pages/UserDashboard";
 import BuildingAdminDashboard from "../pages/BuildingAdminDashboard";
+import BuildingAdminFaqs from "../pages/BuildingAdminFaqs";
 import SuperAdminDashboard from "../pages/SuperAdminDashboard";
 import Navigation from "../pages/Navigation";
 import Chat from "../pages/Chat";
-import AIAssistant from "../pages/AIAssistant";
 import Profile from "../pages/Profile";
 import { useAuth } from "../context/AuthContext";
 
@@ -35,6 +35,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/building-admin/faqs"
+        element={
+          <Protected roles={["tenant_admin"]}>
+            <BuildingAdminFaqs />
+          </Protected>
+        }
+      />
+      <Route
         path="/super-admin"
         element={
           <Protected roles={["super_admin"]}>
@@ -44,7 +52,6 @@ function AppRoutes() {
       />
       <Route path="/navigation" element={<Protected><Navigation /></Protected>} />
       <Route path="/chat" element={<Protected><Chat /></Protected>} />
-      <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
       <Route path="/profile" element={<Protected><Profile /></Protected>} />
     </Routes>
   );
