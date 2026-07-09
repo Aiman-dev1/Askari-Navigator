@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
 import OfficeCard from "../components/common/OfficeCard";
-import offices from "../data/offices";
+import { api } from "../lib/api";
 
 function OfficeDirectory() {
-  // Search state
+  const [offices, setOffices] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Filter offices
+  useEffect(() => {
+    api
+      .get("/offices")
+      .then((data) => setOffices(data.offices))
+      .catch((err) => toast.error(err.message));
+  }, []);
+
   const filteredOffices = offices.filter((office) =>
     office.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -33,7 +40,7 @@ function OfficeDirectory() {
         {/* Office Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOffices.map((office) => (
-            <OfficeCard key={office.id} office={office} />
+            <OfficeCard key={office._id} office={office} />
           ))}
         </div>
 

@@ -1,6 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 function Navbar({ isHome }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
     <nav className="bg-slate-900 text-white px-10 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
 
@@ -63,12 +72,12 @@ function Navbar({ isHome }) {
 
           <Link to="/profile">Profile</Link>
 
-          <Link
-            to="/"
-            className="bg-red-500 px-4 py-2 rounded-lg"
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 px-4 py-2 rounded-lg cursor-pointer"
           >
             Logout
-          </Link>
+          </button>
 
         </div>
 
