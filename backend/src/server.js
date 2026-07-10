@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { initChatSockets } from "./sockets/chat.js";
+import { ensureFloorPlanFiles } from "./utils/floorplans.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -15,6 +16,7 @@ async function main() {
   }
 
   await connectDB();
+  ensureFloorPlanFiles(); // fresh containers start with an empty uploads dir
 
   const server = http.createServer(app);
   const io = new Server(server, {
