@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FiSettings, FiUser, FiLogOut } from "react-icons/fi";
 import { useAuth, homeRouteFor } from "../../context/AuthContext";
 
 function Navbar({ isHome }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isLanding = pathname === "/"; // auth screens get a minimal navbar
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -42,24 +44,28 @@ function Navbar({ isHome }) {
 
         <div className="flex items-center gap-8 text-sm uppercase tracking-wider font-medium">
 
-          <a href="/" className="hover:text-gold-400 transition-colors duration-300">
-            Home
-          </a>
+          {isLanding && (
+            <>
+              <a href="/" className="hover:text-gold-400 transition-colors duration-300">
+                Home
+              </a>
 
-          <a href="#features" className="hover:text-gold-400 transition-colors duration-300">
-            Features
-          </a>
+              <a href="#features" className="hover:text-gold-400 transition-colors duration-300">
+                Features
+              </a>
 
-          <Link to="/login" className="hover:text-gold-400 transition-colors duration-300">
-            Login
-          </Link>
+              <a href="#how-it-works" className="hover:text-gold-400 transition-colors duration-300">
+                How It Works
+              </a>
 
-          <Link
-            to="/register"
-            className="bg-gold-400 hover:bg-gold-500 text-slate-950 px-5 py-2.5 rounded font-semibold tracking-wider transition-all duration-300 shadow-md hover:shadow-gold-400/10"
-          >
-            Get Started
-          </Link>
+              <Link
+                to="/login"
+                className="bg-gold-400 hover:bg-gold-500 text-slate-950 px-5 py-2.5 rounded font-semibold tracking-wider transition-all duration-300 shadow-md hover:shadow-gold-400/10"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
 
         </div>
 
@@ -69,7 +75,9 @@ function Navbar({ isHome }) {
 
         <div className="flex items-center gap-6 text-sm uppercase tracking-wider font-semibold">
 
-          <Link to={homeRouteFor(user)} className="hover:text-gold-400 transition-colors duration-300">Dashboard</Link>
+          {user?.role !== "tenant_admin" && (
+            <Link to={homeRouteFor(user)} className="hover:text-gold-400 transition-colors duration-300">Dashboard</Link>
+          )}
 
           {user?.role === "user" && (
             <Link to="/navigation" className="hover:text-gold-400 transition-colors duration-300">Navigation</Link>
@@ -79,6 +87,7 @@ function Navbar({ isHome }) {
             <>
               <Link to="/building-admin/faqs" className="hover:text-gold-400 transition-colors duration-300">Manage FAQs</Link>
               <Link to="/building-admin/info-sheet" className="hover:text-gold-400 transition-colors duration-300">Info Sheet</Link>
+              <Link to="/building-admin/floor-maps" className="hover:text-gold-400 transition-colors duration-300">Floor Maps</Link>
             </>
           )}
 

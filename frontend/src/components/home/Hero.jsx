@@ -59,7 +59,7 @@ function Hero() {
         </div>
 
         {/* Headline */}
-        <h1 className="animate-fade-in-up animate-delay-200 text-5xl md:text-7xl lg:text-8xl font-serif font-bold leading-[1.05] text-white tracking-wide mb-6">
+        <h1 className="animate-fade-in-up animate-delay-200 text-3xl md:text-5xl lg:text-6xl font-serif font-bold leading-[1.15] text-white tracking-wide mb-6">
           WHERE CUTTING-EDGE<br />
           <span
             className="relative inline-block"

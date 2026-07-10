@@ -23,7 +23,7 @@ function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 bg-white border-b border-gray-150">
+    <section id="how-it-works" className="py-24 bg-white border-b border-gray-150">
 
       <div className="max-w-7xl mx-auto px-6">
 

@@ -86,9 +86,8 @@ function BuildingAdminFaqs() {
         <div className="mb-10 border-b border-gray-200/80 pb-6 relative">
           <Link
             to="/building-admin"
-            className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-[14px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
           >
-            <FiArrowLeft size={12} />
             Back to Dashboard
           </Link>
 

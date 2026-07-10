@@ -17,7 +17,7 @@ function MainLayout({ children }) {
     <>
       <Navbar isHome={isHome} />
       <main>{children}</main>
-      {isAuthenticated && !isHome && <AIAssistantWidget />}
+      {(location.pathname === "/" || (isAuthenticated && !isHome)) && <AIAssistantWidget />}
       <Footer />
     </>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FiMessageSquare, FiX, FiSend } from "react-icons/fi";
 import { api } from "../../lib/api";
+import { DEFAULT_TENANT_SLUG } from "../../context/AuthContext";
 
 // Floating AI concierge — bottom-right chat bubble, like a typical
 // website support widget. Answers from the building FAQs + directory.
@@ -36,7 +37,10 @@ function AIAssistantWidget() {
     setLoading(true);
 
     try {
-      const data = await api.get(`/faqs/ask?question=${encodeURIComponent(q)}`);
+      // tenantSlug lets the concierge answer even for logged-out visitors
+      const data = await api.get(
+        `/faqs/ask?question=${encodeURIComponent(q)}&tenantSlug=${DEFAULT_TENANT_SLUG}`
+      );
       setMessages((prev) => [
         ...prev,
         {

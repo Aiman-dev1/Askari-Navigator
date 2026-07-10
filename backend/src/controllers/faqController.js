@@ -1,11 +1,14 @@
 import Faq from "../models/Faq.js";
 import Office from "../models/Office.js";
+import Tenant from "../models/Tenant.js";
+import { verifyToken } from "../utils/jwt.js";
 
 // Words too common to be useful when matching a question against FAQs
 const STOPWORDS = new Set([
   "where", "is", "the", "a", "an", "of", "to", "in", "on", "at",
   "what", "when", "how", "who", "which", "can", "i", "do", "does",
-  "are", "find", "get", "located", "please",
+  "are", "find", "get", "located", "please", "there", "any", "have",
+  "has", "my", "your", "with", "for", "and", "or", "many", "much",
 ]);
 
 function keywords(text) {
@@ -67,7 +70,28 @@ export async function deleteFaq(req, res, next) {
   }
 }
 
-// GET /api/v1/faqs/ask?question=where+is+hr
+// Public endpoint: the building comes from the JWT when logged in, or from
+// ?tenantSlug= for anonymous visitors (e.g. the landing-page concierge).
+async function resolveTenantId(req) {
+  const token = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7)
+    : null;
+  if (token) {
+    try {
+      const payload = verifyToken(token);
+      if (payload.tenantId) return payload.tenantId;
+    } catch {
+      // fall through to slug lookup
+    }
+  }
+  if (req.query.tenantSlug) {
+    const tenant = await Tenant.findOne({ slug: req.query.tenantSlug.toLowerCase() });
+    return tenant?._id || null;
+  }
+  return null;
+}
+
+// GET /api/v1/faqs/ask?question=where+is+hr[&tenantSlug=...]
 // Keyword-matches the question against the building's FAQs; if nothing
 // matches, falls back to the office directory for "where is X" style queries.
 export async function ask(req, res, next) {
@@ -75,13 +99,18 @@ export async function ask(req, res, next) {
     const question = (req.query.question || "").trim();
     if (!question) return res.status(400).json({ error: "question is required" });
 
+    const tenantId = await resolveTenantId(req);
+    if (!tenantId) {
+      return res.status(401).json({ error: "Log in or provide a tenantSlug" });
+    }
+
     const qWords = keywords(question);
     if (qWords.length === 0) {
       return res.json({ answer: null, source: null });
     }
 
     // 1. Best FAQ by keyword overlap
-    const faqs = await Faq.find({ tenantId: req.user.tenantId });
+    const faqs = await Faq.find({ tenantId });
     let best = null;
     let bestScore = 0;
     for (const faq of faqs) {
@@ -99,7 +128,7 @@ export async function ask(req, res, next) {
     // 2. Fall back to the office directory
     const rx = qWords.map((w) => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
     const office = await Office.findOne({
-      tenantId: req.user.tenantId,
+      tenantId,
       $or: rx.flatMap((r) => [{ name: r }, { description: r }, { room: r }]),
     });
     if (office) {

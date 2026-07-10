@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
-  FiHelpCircle,
-  FiFileText,
   FiGrid,
   FiAlertTriangle,
-  FiLayers,
   FiCreditCard,
-  FiUploadCloud,
 } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
-import { api, API_URL } from "../lib/api";
+import { api } from "../lib/api";
 
 /* ── Reusable section card wrapper ── */
 function SectionCard({ accent = "gold", children, className = "" }) {
@@ -50,10 +45,6 @@ function BuildingAdminDashboard() {
 
   const [office, setOffice] = useState({ name: "", floor: "", room: "" });
 
-  const [mapFloor, setMapFloor] = useState("");
-  const [mapFile, setMapFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
 
@@ -87,23 +78,6 @@ function BuildingAdminDashboard() {
     if (billing === "success") toast.success("Subscription activated — thank you!");
     if (billing === "cancelled") toast("Checkout cancelled", { icon: "ℹ️" });
   }, []);
-
-  const uploadMap = async () => {
-    if (mapFloor === "" || !mapFile) return toast.error("Pick a floor and a plan image");
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("map", mapFile);
-      const data = await api.upload(`/tenants/mine/floors/${mapFloor}/map`, formData);
-      setTenant(data.tenant);
-      setMapFile(null);
-      toast.success(`Floor ${mapFloor} map uploaded`);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const subscribe = async (planId) => {
     try {
@@ -197,45 +171,6 @@ function BuildingAdminDashboard() {
           ))}
         </div>
 
-        {/* ── Quick Links ── */}
-        <div className="grid sm:grid-cols-2 gap-5 mb-10">
-          <Link
-            to="/building-admin/faqs"
-            className="group flex items-center gap-5 bg-white border border-gray-200/60 hover:border-gold-400/50 shadow-sm hover:shadow-md rounded-lg p-6 transition-all duration-300"
-          >
-            <div className="w-12 h-12 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 group-hover:bg-gold-400/20 transition-colors shrink-0">
-              <FiHelpCircle size={22} />
-            </div>
-            <div>
-              <p className="font-serif font-bold text-slate-900 text-base uppercase tracking-wide group-hover:text-gold-600 transition-colors">
-                Manage FAQs
-              </p>
-              <p className="text-gray-500 text-xs mt-1 font-light">
-                Add, edit, and remove FAQ entries that power the AI concierge
-              </p>
-            </div>
-            <span className="ml-auto text-gray-300 group-hover:text-gold-400 transition-colors text-lg">→</span>
-          </Link>
-
-          <Link
-            to="/building-admin/info-sheet"
-            className="group flex items-center gap-5 bg-white border border-gray-200/60 hover:border-gold-400/50 shadow-sm hover:shadow-md rounded-lg p-6 transition-all duration-300"
-          >
-            <div className="w-12 h-12 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 group-hover:bg-gold-400/20 transition-colors shrink-0">
-              <FiFileText size={22} />
-            </div>
-            <div>
-              <p className="font-serif font-bold text-slate-900 text-base uppercase tracking-wide group-hover:text-gold-600 transition-colors">
-                Info Sheet
-              </p>
-              <p className="text-gray-500 text-xs mt-1 font-light">
-                View and manage building information, hours, and emergency contacts
-              </p>
-            </div>
-            <span className="ml-auto text-gray-300 group-hover:text-gold-400 transition-colors text-lg">→</span>
-          </Link>
-        </div>
-
         {/* ── Add Office Suite ── */}
         <SectionCard>
           <SectionTitle icon={FiGrid}>Add New Office Suite</SectionTitle>
@@ -307,98 +242,6 @@ function BuildingAdminDashboard() {
               </tbody>
             </table>
           </div>
-        </SectionCard>
-
-        {/* ── Floor Map Schematic Upload ── */}
-        <SectionCard>
-          <SectionTitle icon={FiUploadCloud}>Floor Map Schematic Upload</SectionTitle>
-
-          {(!tenant?.floors || tenant.floors.length === 0) ? (
-            <div className="p-8 bg-slate-50 rounded-lg border border-dashed border-gray-200 text-center">
-              <FiLayers size={32} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500 text-sm">No floors configured for this building yet.</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid md:grid-cols-3 gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
-                    Floor Level
-                  </label>
-                  <select
-                    value={mapFloor}
-                    onChange={(e) => setMapFloor(e.target.value)}
-                    className="border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-slate-50/50"
-                  >
-                    <option value="">Select floor...</option>
-                    {(tenant?.floors || []).map((f) => (
-                      <option key={f.floorNumber} value={f.floorNumber}>
-                        {f.name || `Floor ${f.floorNumber}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5 md:col-span-2">
-                  <label className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
-                    Schematic File
-                    <span className="ml-2 text-gray-400 normal-case tracking-normal font-normal">
-                      (SVG, PNG, JPG, WebP)
-                    </span>
-                  </label>
-                  <div className="border border-dashed border-gray-300 hover:border-gold-400 rounded-lg p-4 bg-slate-50/50 transition-colors">
-                    <input
-                      type="file"
-                      accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
-                      onChange={(e) => setMapFile(e.target.files[0] || null)}
-                      className="file:border-0 file:bg-slate-900 file:text-gold-400 file:px-4 file:py-2 file:rounded-lg file:text-xs file:uppercase file:tracking-wider file:font-semibold file:cursor-pointer hover:file:bg-slate-800 file:mr-4 text-sm text-gray-600 w-full"
-                    />
-                    {mapFile && (
-                      <p className="text-xs text-gold-600 mt-2 font-medium">
-                        ✓ {mapFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={uploadMap}
-                disabled={uploading}
-                className="mt-6 bg-gold-400 hover:bg-gold-500 text-slate-950 px-7 py-3 rounded-lg font-bold uppercase tracking-wider text-xs transition-all shadow cursor-pointer hover:shadow-md disabled:opacity-50"
-              >
-                {uploading ? "Uploading..." : "Upload Schematic"}
-              </button>
-
-              {/* Uploaded maps preview */}
-              {(tenant?.floors || []).some((f) => f.mapUrl) && (
-                <div className="mt-8">
-                  <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-4">
-                    Uploaded Floor Plans
-                  </p>
-                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
-                    {(tenant?.floors || [])
-                      .filter((f) => f.mapUrl)
-                      .map((f) => (
-                        <div
-                          key={f.floorNumber}
-                          className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors"
-                        >
-                          <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-3">
-                            {f.name || `Floor ${f.floorNumber}`}
-                          </p>
-                          <img
-                            src={`${API_URL}${f.mapUrl}`}
-                            alt={`Floor ${f.floorNumber} map`}
-                            className="w-full h-40 object-contain bg-white rounded border border-gray-100"
-                          />
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
         </SectionCard>
 
         {/* ── Subscription & Billing ── */}
