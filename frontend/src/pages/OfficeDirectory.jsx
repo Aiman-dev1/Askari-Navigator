@@ -3,8 +3,10 @@ import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
 import OfficeCard from "../components/common/OfficeCard";
 import { api } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 function OfficeDirectory() {
+  const { user } = useAuth();
   const [offices, setOffices] = useState([]);
   const [search, setSearch] = useState("");
 
@@ -40,7 +42,24 @@ function OfficeDirectory() {
         {/* Office Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOffices.map((office) => (
-            <OfficeCard key={office._id} office={office} />
+            <OfficeCard 
+              key={office._id} 
+              office={office} 
+              onDelete={
+                user?.role === "super_admin" 
+                  ? async () => {
+                      if (!window.confirm("Are you sure you want to permanently delete this office?")) return;
+                      try {
+                        await api.delete(`/offices/${office._id}`);
+                        setOffices(offices.filter((o) => o._id !== office._id));
+                        toast.success("Office deleted permanently");
+                      } catch (err) {
+                        toast.error(err.message);
+                      }
+                    }
+                  : null
+              }
+            />
           ))}
         </div>
 

@@ -15,11 +15,16 @@ function Register() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) return toast.error("Fill in all fields");
-    if (password.length < 6) return toast.error("Password must be at least 6 characters");
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedPassword) return toast.error("Fill in all fields");
+    if (/^\d+$/.test(trimmedName)) return toast.error("Enter a valid name");
+    if (trimmedPassword.length < 6) return toast.error("Password must be at least 6 characters");
     setLoading(true);
     try {
-      const user = await register(name.trim(), email.trim(), password);
+      const user = await register(trimmedName, trimmedEmail, trimmedPassword);
       toast.success(`Account created. Welcome, ${user.username}!`);
       navigate("/user");
     } catch (err) {
@@ -44,7 +49,7 @@ function Register() {
         <div className="glass-card-dark p-10 rounded shadow-2xl w-full max-w-md border border-gold-400/20">
 
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-serif font-bold text-white tracking-wide">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white tracking-wide transition-all">
               REGISTRATION
             </h2>
             <div className="w-12 h-[2px] bg-gold-400 mx-auto mt-2"></div>

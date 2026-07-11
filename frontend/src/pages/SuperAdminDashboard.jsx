@@ -162,7 +162,7 @@ function SuperAdminDashboard() {
                         {t.subscriptionStatus}
                       </span>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 flex gap-2 justify-center items-center">
                       <select
                         value={t.subscriptionStatus}
                         onChange={(e) => setStatus(t._id, e.target.value)}
@@ -173,6 +173,21 @@ function SuperAdminDashboard() {
                         <option value="Suspended">Suspended</option>
                         <option value="Cancelled">Cancelled</option>
                       </select>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Are you sure you want to permanently delete building "${t.buildingName}"?`)) return;
+                          try {
+                            await api.delete(`/tenants/${t._id}`);
+                            toast.success("Building deleted permanently");
+                            loadTenants();
+                          } catch (err) {
+                            toast.error(err.message);
+                          }
+                        }}
+                        className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

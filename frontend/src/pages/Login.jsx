@@ -15,10 +15,13 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) return toast.error("Enter email and password");
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) return toast.error("Enter email and password");
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const user = await login(trimmedEmail, trimmedPassword);
       toast.success(`Welcome back, ${user.username}!`);
       navigate(homeRouteFor(user));
     } catch (err) {
@@ -29,10 +32,22 @@ function Login() {
   };
 
   const handleGuest = async () => {
-    if (!guestName.trim()) return toast.error("Pick a username first");
+    const trimmed = guestName.trim();
+    if (!trimmed) return toast.error("Pick a username first");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const cnicRegex = /^\d{5}-\d{7}-\d{1}$/; // Real CNIC pattern with hyphens
+    const passportRegex = /^[A-Z][0-9]{7,9}$/i; // Basic real passport pattern
+
+    const isValidGuest = emailRegex.test(trimmed) || cnicRegex.test(trimmed) || passportRegex.test(trimmed);
+
+    if (!isValidGuest) {
+      return toast.error("Please enter a valid Email, CNIC (e.g. 12345-1234567-1), or Passport Number");
+    }
+
     setLoading(true);
     try {
-      const user = await guestLogin(guestName.trim());
+      const user = await guestLogin(trimmed);
       toast.success(`Welcome, ${user.username}!`);
       navigate("/user");
     } catch (err) {
@@ -69,6 +84,7 @@ function Login() {
               <label className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1 block">Email Address</label>
               <input
                 type="email"
+                autoComplete="off"
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,6 +96,7 @@ function Login() {
               <label className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1 block">Password</label>
               <input
                 type="password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -115,7 +132,7 @@ function Login() {
 
               <input
                 type="text"
-                placeholder="Temporary visitor name"
+                placeholder="Email, CNIC, or Passport"
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleGuest()}

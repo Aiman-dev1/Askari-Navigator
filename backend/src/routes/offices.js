@@ -13,6 +13,6 @@ router.use(requireAuth);
 router.get("/", listOffices);
 router.post("/", requireRole("tenant_admin"), createOffice);
 router.put("/:id", requireRole("tenant_admin"), updateOffice);
-router.delete("/:id", requireRole("tenant_admin"), deleteOffice);
+router.delete("/:id", requireRole("tenant_admin", "super_admin"), deleteOffice);
 
 export default router;

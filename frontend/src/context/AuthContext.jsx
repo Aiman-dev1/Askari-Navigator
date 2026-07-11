@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (email, password) =>
-    finishLogin(await api.post("/auth/login", { email, password }));
+    finishLogin(await api.post("/auth/login", { email, password, tenantSlug: DEFAULT_TENANT_SLUG }));
 
   const register = async (username, email, password) =>
     finishLogin(

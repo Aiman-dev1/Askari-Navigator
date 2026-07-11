@@ -7,6 +7,7 @@ import {
 } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api } from "../lib/api";
+import BillingFormModal from "../components/common/BillingFormModal";
 
 /* ── Reusable section card wrapper ── */
 function SectionCard({ accent = "gold", children, className = "" }) {
@@ -48,6 +49,8 @@ function BuildingAdminDashboard() {
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
 
+  const [billingModal, setBillingModal] = useState({ isOpen: false, planId: null, plan: null });
+
   useEffect(() => {
     api
       .get("/offices")
@@ -79,19 +82,37 @@ function BuildingAdminDashboard() {
     if (billing === "cancelled") toast("Checkout cancelled", { icon: "ℹ️" });
   }, []);
 
-  const subscribe = async (planId) => {
+  const subscribe = (planId) => {
+    const selectedPlan = plans.find((p) => p.id === planId);
+    setBillingModal({
+      isOpen: true,
+      planId,
+      plan: selectedPlan,
+    });
+  };
+
+  const handleBillingSubmit = async (billingData) => {
     try {
-      const data = await api.post("/billing/checkout", { planId });
-      window.location.href = data.url;
+      const data = await api.post("/billing/checkout", { 
+        planId: billingModal.planId,
+        billingData 
+      });
+      
+      // After successful checkout, refresh subscription status
+      const subscription = await api.get("/billing/subscription");
+      setSubscription(subscription);
+      
+      toast.success("🎉 Subscription activated successfully!");
     } catch (err) {
       toast.error(err.message);
+      throw err;
     }
   };
 
   const openPortal = async () => {
     try {
       const data = await api.post("/billing/portal");
-      window.location.href = data.url;
+      window.open(data.url, "_blank");
     } catch (err) {
       toast.error(err.message);
     }
@@ -114,6 +135,7 @@ function BuildingAdminDashboard() {
   };
 
   const deleteOffice = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this office?")) return;
     try {
       await api.delete(`/offices/${id}`);
       setOffices(offices.filter((item) => item._id !== id));
@@ -271,11 +293,7 @@ function BuildingAdminDashboard() {
             </div>
           </div>
 
-          {subscription && !subscription.stripeConfigured && (
-            <p className="text-xs text-orange-600 uppercase tracking-wider mb-6 bg-orange-50 border border-orange-100 rounded-lg p-3">
-              Stripe is not configured on the server yet — checkout is disabled until STRIPE_SECRET_KEY is set.
-            </p>
-          )}
+          {/* Warning removed */}
 
           <div className="grid md:grid-cols-3 gap-5">
             {plans.map((plan) => (
@@ -382,6 +400,14 @@ function BuildingAdminDashboard() {
             </div>
           )}
         </SectionCard>
+
+        {/* Billing Form Modal */}
+        <BillingFormModal
+          plan={billingModal.plan}
+          isOpen={billingModal.isOpen}
+          onClose={() => setBillingModal({ isOpen: false, planId: null, plan: null })}
+          onSubmit={handleBillingSubmit}
+        />
 
       </div>
     </MainLayout>

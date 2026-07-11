@@ -56,7 +56,20 @@ export async function login(req, res, next) {
     }
 
     const user = await User.findOne(query).select("+passwordHash");
-    if (!user || !user.passwordHash || !(await user.comparePassword(password))) {
+    
+    if (!user) {
+      console.log(`[Auth Debug] User not found for email: ${email}, query:`, query);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    if (!user.passwordHash) {
+      console.log(`[Auth Debug] User found but no password hash: ${user.email}`);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    const passwordMatch = await user.comparePassword(password);
+    if (!passwordMatch) {
+      console.log(`[Auth Debug] Password mismatch for user: ${user.email}`);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 

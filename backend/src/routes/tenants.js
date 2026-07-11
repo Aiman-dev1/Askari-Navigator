@@ -3,6 +3,7 @@ import {
   listTenants,
   createTenant,
   updateTenant,
+  deleteTenant,
   getTenantBySlug,
   getMyTenant,
   updateMyFloors,
@@ -31,5 +32,6 @@ router.post(
 router.get("/", requireAuth, requireRole("super_admin"), listTenants);
 router.post("/", requireAuth, requireRole("super_admin"), createTenant);
 router.patch("/:id", requireAuth, requireRole("super_admin"), updateTenant);
+router.delete("/:id", requireAuth, requireRole("super_admin"), deleteTenant);
 
 export default router;

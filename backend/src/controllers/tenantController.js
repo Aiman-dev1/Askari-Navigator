@@ -58,6 +58,19 @@ export async function updateTenant(req, res, next) {
   }
 }
 
+// DELETE /api/v1/tenants/:id (super admin) — delete a building permanently
+export async function deleteTenant(req, res, next) {
+  try {
+    const tenant = await Tenant.findByIdAndDelete(req.params.id);
+    if (!tenant) return res.status(404).json({ error: "Tenant not found" });
+    // Also delete associated admin users if necessary
+    await User.deleteMany({ tenantId: req.params.id });
+    res.json({ message: "Tenant deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // POST /api/v1/tenants/mine/floors/:floorNumber/map  (tenant admin)
 // Uploads an SVG floor plan; creates the floor entry if it doesn't exist yet.
 export async function uploadFloorMap(req, res, next) {
