@@ -1,5 +1,10 @@
 import Tenant from "../models/Tenant.js";
 import User from "../models/User.js";
+import Office from "../models/Office.js";
+import Faq from "../models/Faq.js";
+import ChatRoom from "../models/ChatRoom.js";
+import Message from "../models/Message.js";
+import { logActivity } from "../utils/activityLogger.js";
 
 // GET /api/v1/tenants  (super admin) — all buildings + subscription status
 export async function listTenants(req, res, next) {
@@ -37,6 +42,7 @@ export async function createTenant(req, res, next) {
       tenant,
       admin: adminUser ? { id: adminUser._id, email: adminUser.email } : null,
     });
+    logActivity(req, "BUILDING_CREATED", `Onboarded new building: "${tenant.buildingName}" (slug: ${tenant.slug})`, { resourceType: "tenant", resourceId: tenant._id });
   } catch (err) {
     next(err);
   }
@@ -52,20 +58,51 @@ export async function updateTenant(req, res, next) {
       { new: true, runValidators: true, omitUndefined: true }
     );
     if (!tenant) return res.status(404).json({ error: "Tenant not found" });
+    logActivity(req, "BUILDING_STATUS_CHANGED", `Changed "${tenant.buildingName}" status to ${req.body.subscriptionStatus || "updated"}`, { resourceType: "tenant", resourceId: tenant._id });
     res.json({ tenant });
   } catch (err) {
     next(err);
   }
 }
 
-// DELETE /api/v1/tenants/:id (super admin) — delete a building permanently
+// DELETE /api/v1/tenants/:id (super admin)
+// Cascade-deletes the building and ALL related data:
+//   Users → Offices → FAQs → Messages → ChatRooms → Tenant
 export async function deleteTenant(req, res, next) {
   try {
-    const tenant = await Tenant.findByIdAndDelete(req.params.id);
+    const tenantId = req.params.id;
+
+    const tenant = await Tenant.findById(tenantId);
     if (!tenant) return res.status(404).json({ error: "Tenant not found" });
-    // Also delete associated admin users if necessary
-    await User.deleteMany({ tenantId: req.params.id });
-    res.json({ message: "Tenant deleted successfully" });
+
+    // Run all related deletions in parallel for speed
+    const [users, offices, faqs, messages, chatRooms] = await Promise.all([
+      User.deleteMany({ tenantId }),
+      Office.deleteMany({ tenantId }),
+      Faq.deleteMany({ tenantId }),
+      Message.deleteMany({ tenantId }),
+      ChatRoom.deleteMany({ tenantId }),
+    ]);
+
+    // Finally delete the tenant itself
+    await Tenant.findByIdAndDelete(tenantId);
+
+    const summary = {
+      users: users.deletedCount,
+      offices: offices.deletedCount,
+      faqs: faqs.deletedCount,
+      messages: messages.deletedCount,
+      chatRooms: chatRooms.deletedCount,
+    };
+
+    console.log(`[Tenant Delete] "${tenant.buildingName}" removed. Cascade summary:`, summary);
+
+    logActivity(req, "BUILDING_DELETED", `Deleted building: "${tenant.buildingName}" — ${summary.users} users, ${summary.offices} offices, ${summary.faqs} FAQs, ${summary.chatRooms} rooms, ${summary.messages} messages removed.`, { resourceType: "tenant" });
+
+    res.json({
+      message: `Building "${tenant.buildingName}" and all its data deleted permanently.`,
+      deleted: summary,
+    });
   } catch (err) {
     next(err);
   }
@@ -94,6 +131,8 @@ export async function uploadFloorMap(req, res, next) {
       tenant.floors.sort((a, b) => a.floorNumber - b.floorNumber);
     }
     await tenant.save();
+
+    logActivity(req, "FLOOR_MAP_UPLOADED", `Uploaded floor map for Floor ${floorNumber}`, { resourceType: "tenant", resourceId: tenant._id });
 
     res.json({ floorNumber, mapUrl, tenant });
   } catch (err) {

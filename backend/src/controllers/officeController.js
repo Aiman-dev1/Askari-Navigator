@@ -1,4 +1,5 @@
 import Office from "../models/Office.js";
+import { logActivity } from "../utils/activityLogger.js";
 
 // GET /api/v1/offices — full directory for the caller's building
 export async function listOffices(req, res, next) {
@@ -27,6 +28,7 @@ export async function createOffice(req, res, next) {
       category,
       directions,
     });
+    logActivity(req, "OFFICE_CREATED", `Added office: "${name}" (${floor}, Room ${room})`, { resourceType: "office", resourceId: office._id });
     res.status(201).json({ office });
   } catch (err) {
     next(err);
@@ -43,6 +45,7 @@ export async function updateOffice(req, res, next) {
       { new: true, runValidators: true, omitUndefined: true }
     );
     if (!office) return res.status(404).json({ error: "Office not found" });
+    logActivity(req, "OFFICE_UPDATED", `Updated office: "${office.name}"`, { resourceType: "office", resourceId: office._id });
     res.json({ office });
   } catch (err) {
     next(err);
@@ -57,6 +60,7 @@ export async function deleteOffice(req, res, next) {
       tenantId: req.user.tenantId,
     });
     if (!office) return res.status(404).json({ error: "Office not found" });
+    logActivity(req, "OFFICE_DELETED", `Deleted office: "${office.name}" (${office.floor})`, { resourceType: "office", resourceId: office._id });
     res.json({ deleted: true });
   } catch (err) {
     next(err);

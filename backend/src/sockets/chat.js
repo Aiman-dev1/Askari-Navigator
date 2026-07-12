@@ -6,12 +6,25 @@ import Message from "../models/Message.js";
 // Shuffle Chat queue (scope doc §2C): one waiting user per tenant.
 // tenantId -> { socketId, userId, username }
 const matchQueue = new Map();
+let globalIo = null;
 
 function socketRoomName(tenantId, roomId) {
   return `${tenantId}:${roomId}`;
 }
 
+export function sendRealtimeLog(log) {
+  if (!globalIo) return;
+  if (log.actorRole === "tenant_admin") {
+    globalIo.to("super_admins").emit("new_log", log);
+  } else if (log.actorRole === "user") {
+    if (log.tenantId) {
+      globalIo.to(`tenant:${log.tenantId.toString()}:admins`).emit("new_log", log);
+    }
+  }
+}
+
 export function initChatSockets(io) {
+  globalIo = io;
   // Authenticate every socket connection with the same JWT used by the REST API
   io.use((socket, next) => {
     const token =
@@ -19,7 +32,9 @@ export function initChatSockets(io) {
     if (!token) return next(new Error("Authentication required"));
     try {
       socket.user = verifyToken(token);
-      if (!socket.user.tenantId) return next(new Error("Socket chat requires a tenant user"));
+      if (!socket.user.tenantId && socket.user.role !== "super_admin") {
+        return next(new Error("Socket connection requires a tenant user or super admin"));
+      }
       next();
     } catch {
       next(new Error("Invalid or expired token"));
@@ -27,7 +42,17 @@ export function initChatSockets(io) {
   });
 
   io.on("connection", (socket) => {
-    const { tenantId, sub: userId, username } = socket.user;
+    const { tenantId, sub: userId, username, role } = socket.user;
+
+    // Join specific real-time log channels based on role
+    if (role === "super_admin") {
+      socket.join("super_admins");
+    } else {
+      socket.join(`tenant:${tenantId}`);
+      if (role === "tenant_admin") {
+        socket.join(`tenant:${tenantId}:admins`);
+      }
+    }
 
     // --- Room chat -------------------------------------------------------
 

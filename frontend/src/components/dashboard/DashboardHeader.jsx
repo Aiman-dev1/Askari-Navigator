@@ -3,7 +3,7 @@ function DashboardHeader({ title }) {
     <div className="mb-10 border-b border-gray-200/80 pb-6 relative">
 
       {/* Page Title */}
-      <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase leading-tight">
         {title}
       </h1>
 

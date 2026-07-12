@@ -9,6 +9,7 @@ import tenantRoutes from "./routes/tenants.js";
 import chatRoutes from "./routes/chat.js";
 import faqRoutes from "./routes/faqs.js";
 import billingRoutes from "./routes/billing.js";
+import logRoutes from "./routes/logs.js";
 import { webhook } from "./controllers/billingController.js";
 import { UPLOADS_DIR } from "./middleware/upload.js";
 import { notFound, errorHandler } from "./middleware/error.js";
@@ -42,6 +43,7 @@ app.use("/api/v1/tenants", tenantRoutes);
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/faqs", faqRoutes);
 app.use("/api/v1/billing", billingRoutes);
+app.use("/api/v1/logs", logRoutes);
 
 // Uploaded floor plans. The CSP header stops any scripts inside an
 // uploaded SVG from running if the file is opened directly.

@@ -14,7 +14,7 @@ function DashboardCard({ title, description, to, onClick }) {
       role="link"
       tabIndex={0}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleClick()}
-      className="bg-white border border-gray-200/60 shadow-md hover:border-gold-400/50 rounded p-8 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group cursor-pointer focus:outline-none focus:border-gold-400"
+      className="bg-white border border-gray-200/60 shadow-md hover:border-gold-400/50 rounded p-5 sm:p-8 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group cursor-pointer focus:outline-none focus:border-gold-400"
     >
 
       {/* Decorative Top Accent line */}

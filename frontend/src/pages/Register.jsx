@@ -49,7 +49,7 @@ function Register() {
         <div className="glass-card-dark p-10 rounded shadow-2xl w-full max-w-md border border-gold-400/20">
 
           <div className="text-center mb-8">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold text-white tracking-wide transition-all">
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-widest transition-all">
               REGISTRATION
             </h2>
             <div className="w-12 h-[2px] bg-gold-400 mx-auto mt-2"></div>

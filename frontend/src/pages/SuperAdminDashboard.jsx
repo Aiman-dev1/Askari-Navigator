@@ -1,7 +1,61 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
+import { FiTrash2, FiAlertTriangle, FiX } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api } from "../lib/api";
+
+/* ── Delete Confirmation Modal ── */
+function DeleteBuildingModal({ isOpen, building, onConfirm, onCancel }) {
+  if (!isOpen || !building) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onCancel} />
+      {/* Card */}
+      <div className="relative bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-md mx-4 overflow-hidden">
+        <div className="h-1 w-full bg-gradient-to-r from-red-400 to-red-600" />
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+          aria-label="Close"
+        >
+          <FiX size={15} />
+        </button>
+        <div className="p-7">
+          <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-5">
+            <FiAlertTriangle size={26} className="text-red-500" />
+          </div>
+          <h3 className="text-xl font-serif font-bold text-slate-900 text-center uppercase tracking-wide mb-2">
+            Delete Building?
+          </h3>
+          <p className="text-sm text-gray-500 text-center mb-4 leading-relaxed">
+            This will <span className="font-bold text-red-500">permanently</span> delete the building and{" "}
+            <span className="font-semibold">all related data</span> — users, offices, FAQs, chat rooms, and messages.
+          </p>
+          <div className="bg-slate-50 border border-gray-200 rounded-lg px-4 py-3 mb-6">
+            <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Building</p>
+            <p className="text-sm text-slate-700 font-bold">{building.buildingName}</p>
+            <p className="text-xs text-gray-400 font-mono mt-0.5">{building.slug}</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={onCancel}
+              className="flex-1 px-5 py-2.5 rounded-lg border border-gray-200 text-slate-700 text-sm font-semibold uppercase tracking-wider hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="flex-1 px-5 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-bold uppercase tracking-wider transition-all shadow cursor-pointer hover:shadow-md flex items-center justify-center gap-2"
+            >
+              <FiTrash2 size={13} /> Delete All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_STYLES = {
   Active: "text-green-600",
@@ -13,15 +67,18 @@ const STATUS_STYLES = {
 function SuperAdminDashboard() {
   const [tenants, setTenants] = useState([]);
   const [form, setForm] = useState({ buildingName: "", slug: "" });
+  const [deleteModal, setDeleteModal] = useState({ open: false, building: null });
 
-  const loadTenants = () => {
+  const loadTenants = useCallback(() => {
     api
       .get("/tenants")
       .then((data) => setTenants(data.tenants))
       .catch((err) => toast.error(err.message));
-  };
+  }, []);
 
-  useEffect(loadTenants, []);
+  useEffect(() => {
+    loadTenants();
+  }, [loadTenants]);
 
   const addTenant = async () => {
     if (!form.buildingName || !form.slug) return toast.error("Fill in name and slug");
@@ -44,10 +101,45 @@ function SuperAdminDashboard() {
     }
   };
 
+  // Step 1: open the confirm modal
+  const handleDeleteClick = (building) => {
+    setDeleteModal({ open: true, building });
+  };
+
+  // Step 2: confirmed — cascade delete
+  const handleDeleteConfirm = async () => {
+    const { building } = deleteModal;
+    setDeleteModal({ open: false, building: null });
+    try {
+      const result = await api.delete(`/tenants/${building._id}`);
+      const d = result.deleted;
+      toast.success(
+        `"${building.buildingName}" deleted — ${d.users} users, ${d.offices} offices, ${d.faqs} FAQs, ${d.chatRooms} chat rooms, ${d.messages} messages removed.`,
+        { duration: 6000 }
+      );
+      loadTenants();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  // Step 3: cancelled
+  const handleDeleteCancel = () => {
+    setDeleteModal({ open: false, building: null });
+  };
+
   const activeCount = tenants.filter((t) => t.subscriptionStatus === "Active").length;
 
   return (
     <MainLayout>
+      {/* Deletion confirmation modal */}
+      <DeleteBuildingModal
+        isOpen={deleteModal.open}
+        building={deleteModal.building}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+
       <div className="max-w-7xl mx-auto px-6 py-12 min-h-screen">
 
         {/* Dashboard Header */}
@@ -174,19 +266,10 @@ function SuperAdminDashboard() {
                         <option value="Cancelled">Cancelled</option>
                       </select>
                       <button
-                        onClick={async () => {
-                          if (!window.confirm(`Are you sure you want to permanently delete building "${t.buildingName}"?`)) return;
-                          try {
-                            await api.delete(`/tenants/${t._id}`);
-                            toast.success("Building deleted permanently");
-                            loadTenants();
-                          } catch (err) {
-                            toast.error(err.message);
-                          }
-                        }}
-                        className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                        onClick={() => handleDeleteClick(t)}
+                        className="flex items-center gap-1.5 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                       >
-                        Delete
+                        <FiTrash2 size={11} /> Delete
                       </button>
                     </td>
                   </tr>
@@ -241,6 +324,7 @@ function SuperAdminDashboard() {
           </div>
 
         </div>
+
 
       </div>
     </MainLayout>

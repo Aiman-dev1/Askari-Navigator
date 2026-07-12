@@ -37,17 +37,20 @@ function AIAssistantWidget() {
     setLoading(true);
 
     try {
-      // tenantSlug lets the concierge answer even for logged-out visitors
-      const data = await api.get(
-        `/faqs/ask?question=${encodeURIComponent(q)}&tenantSlug=${DEFAULT_TENANT_SLUG}`
-      );
+      const payload = {
+        messages: [
+          ...messages, // existing messages
+          { role: "user", text: q } // current user question
+        ]
+      };
+
+      const data = await api.post(`/faqs/ask?tenantSlug=${DEFAULT_TENANT_SLUG}`, payload);
+      
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text:
-            data.answer ||
-            "I don't know that one yet. Try asking about an office, department or facility.",
+          text: data.answer || "I don't know that one yet. Try asking about an office, department or facility.",
           source: data.source,
         },
       ]);

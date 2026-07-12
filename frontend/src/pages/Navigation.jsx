@@ -46,15 +46,15 @@ function Navigation() {
     }
 
     const t = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (search.trim()) params.set("query", search.trim());
+      if (floorFilter !== null) params.set("floor", floorFilter);
+
       api
-        .get(`/navigation/search?query=${encodeURIComponent(search)}`)
+        .get(`/navigation/search?${params.toString()}`)
         .then((data) => {
-          const filtered =
-            floorFilter === null
-              ? data.results
-              : data.results.filter((r) => r.floorNumber === floorFilter);
-          setResults(filtered);
-          setSelected(filtered[0] || null);
+          setResults(data.results);
+          setSelected(data.results[0] || null);
         })
         .catch((err) => toast.error(err.message));
     }, 300);
@@ -67,7 +67,7 @@ function Navigation() {
 
   return (
     <MainLayout>
-      <div className="max-w-5xl mx-auto px-6 py-12 min-h-[75vh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-[75vh]">
 
         {/* Page Header */}
         <div className="mb-10 border-b border-gray-200/80 pb-6 relative">
@@ -80,7 +80,7 @@ function Navigation() {
           <div className="absolute bottom-[-1px] left-0 w-24 h-[2px] bg-gold-400"></div>
         </div>
 
-        <div className="flex gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
 
           <input
             type="text"
@@ -97,7 +97,7 @@ function Navigation() {
               onClick={() => setFilterOpen(!filterOpen)}
               aria-label="Filter by floor"
               aria-expanded={filterOpen}
-              className={`h-full px-5 rounded border flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-sm cursor-pointer ${
+              className={`px-5 py-3 sm:h-full rounded border flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-sm cursor-pointer ${
                 floorFilter !== null
                   ? "bg-slate-900 border-gold-400 text-gold-400"
                   : "bg-white border-gray-200 text-gray-600 hover:border-gold-400/50 hover:text-slate-900"
@@ -183,14 +183,14 @@ function Navigation() {
         )}
 
         {selected ? (
-          <div className="bg-white border border-gray-200/60 shadow-md rounded p-8 relative overflow-hidden">
+          <div className="bg-white border border-gray-200/60 shadow-md rounded p-5 sm:p-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400"></div>
 
             <h2 className="text-2xl font-serif font-bold text-gold-600 uppercase tracking-wide mb-6">
               {selected.name}
             </h2>
 
-            <div className="grid grid-cols-2 gap-6 max-w-md mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-md mb-8">
               <div className="bg-slate-50 p-4 rounded border-l-2 border-gold-400">
                 <span className="text-xs uppercase tracking-widest text-gray-400 font-bold block mb-1">Floor Level</span>
                 <strong className="text-slate-900 text-sm font-semibold">{selected.floor}</strong>

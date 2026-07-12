@@ -9,6 +9,8 @@ import BuildingAdminFaqs from "../pages/BuildingAdminFaqs";
 import BuildingAdminFloorMaps from "../pages/BuildingAdminFloorMaps";
 import InfoSheet from "../pages/InfoSheet";
 import SuperAdminDashboard from "../pages/SuperAdminDashboard";
+import SuperAdminLogsPage from "../pages/SuperAdminLogsPage";
+import BuildingAdminLogsPage from "../pages/BuildingAdminLogsPage";
 import Navigation from "../pages/Navigation";
 import Chat from "../pages/Chat";
 import Profile from "../pages/Profile";
@@ -65,6 +67,22 @@ function AppRoutes() {
         element={
           <Protected roles={["super_admin"]}>
             <SuperAdminDashboard />
+          </Protected>
+        }
+      />
+      <Route
+        path="/super-admin/logs"
+        element={
+          <Protected roles={["super_admin"]}>
+            <SuperAdminLogsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/building-admin/logs"
+        element={
+          <Protected roles={["tenant_admin"]}>
+            <BuildingAdminLogsPage />
           </Protected>
         }
       />

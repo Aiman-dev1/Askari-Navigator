@@ -2,6 +2,8 @@ import Faq from "../models/Faq.js";
 import Office from "../models/Office.js";
 import Tenant from "../models/Tenant.js";
 import { verifyToken } from "../utils/jwt.js";
+import { logActivity } from "../utils/activityLogger.js";
+import Groq from "groq-sdk";
 
 // Words too common to be useful when matching a question against FAQs
 const STOPWORDS = new Set([
@@ -37,6 +39,7 @@ export async function createFaq(req, res, next) {
       return res.status(400).json({ error: "question and answer are required" });
     }
     const faq = await Faq.create({ tenantId: req.user.tenantId, question, answer });
+    logActivity(req, "FAQ_CREATED", `Added FAQ: "${question}"`, { resourceType: "faq", resourceId: faq._id });
     res.status(201).json({ faq });
   } catch (err) {
     next(err);
@@ -53,6 +56,7 @@ export async function updateFaq(req, res, next) {
       { new: true, runValidators: true }
     );
     if (!faq) return res.status(404).json({ error: "FAQ not found" });
+    logActivity(req, "FAQ_UPDATED", `Updated FAQ: "${faq.question}"`, { resourceType: "faq", resourceId: faq._id });
     res.json({ faq });
   } catch (err) {
     next(err);
@@ -64,6 +68,7 @@ export async function deleteFaq(req, res, next) {
   try {
     const faq = await Faq.findOneAndDelete({ _id: req.params.id, tenantId: req.user.tenantId });
     if (!faq) return res.status(404).json({ error: "FAQ not found" });
+    logActivity(req, "FAQ_DELETED", `Deleted FAQ: "${faq.question}"`, { resourceType: "faq", resourceId: faq._id });
     res.json({ deleted: true });
   } catch (err) {
     next(err);
@@ -93,54 +98,65 @@ async function resolveTenantId(req) {
 
 // GET /api/v1/faqs/ask?question=where+is+hr[&tenantSlug=...]
 // Keyword-matches the question against the building's FAQs; if nothing
-// matches, falls back to the office directory for "where is X" style queries.
+// POST /api/v1/faqs/ask
+// Uses Groq LLM to answer questions using building FAQs and Directory as context
 export async function ask(req, res, next) {
   try {
-    const question = (req.query.question || "").trim();
-    if (!question) return res.status(400).json({ error: "question is required" });
+    const { messages = [] } = req.body;
+    if (messages.length === 0) {
+      return res.status(400).json({ error: "messages array is required" });
+    }
 
     const tenantId = await resolveTenantId(req);
     if (!tenantId) {
       return res.status(401).json({ error: "Log in or provide a tenantSlug" });
     }
 
-    const qWords = keywords(question);
-    if (qWords.length === 0) {
-      return res.json({ answer: null, source: null });
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: "GROQ_API_KEY is not configured" });
     }
 
-    // 1. Best FAQ by keyword overlap
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+    // Fetch context data
     const faqs = await Faq.find({ tenantId });
-    let best = null;
-    let bestScore = 0;
-    for (const faq of faqs) {
-      const fWords = new Set(keywords(faq.question));
-      const score = qWords.filter((w) => fWords.has(w)).length;
-      if (score > bestScore) {
-        best = faq;
-        bestScore = score;
-      }
-    }
-    if (best) {
-      return res.json({ answer: best.answer, source: "faq", matched: best.question });
-    }
+    const offices = await Office.find({ tenantId });
 
-    // 2. Fall back to the office directory
-    const rx = qWords.map((w) => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
-    const office = await Office.findOne({
-      tenantId,
-      $or: rx.flatMap((r) => [{ name: r }, { description: r }, { room: r }]),
-    });
-    if (office) {
-      return res.json({
-        answer: `${office.name} is on the ${office.floor}, Room ${office.room}.`,
-        source: "directory",
-        matched: office.name,
+    // Build system prompt
+    let systemPrompt = "You are the AI Concierge for Askari Corporate Tower. Answer the user's questions based ONLY on the following information. Be concise, polite, and helpful.\n\n";
+    
+    if (faqs.length > 0) {
+      systemPrompt += "### Building FAQs:\n";
+      faqs.forEach(f => {
+        systemPrompt += `Q: ${f.question}\nA: ${f.answer}\n\n`;
       });
     }
 
-    res.json({ answer: null, source: null });
+    if (offices.length > 0) {
+      systemPrompt += "### Office Directory:\n";
+      offices.forEach(o => {
+        systemPrompt += `- ${o.name} is located on ${o.floor}, Room ${o.room}. ${o.description ? `(Info: ${o.description})` : ""}\n`;
+      });
+    }
+
+    systemPrompt += "\nIf the information is not in the FAQs or Directory above, say 'I don't have that information yet. Please contact building management.' Do not make up answers.";
+
+    // Call Groq LLM
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map(m => ({ role: m.role, content: m.text })) // Map frontend msg format to Groq format
+      ],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.3,
+      max_tokens: 256,
+    });
+
+    const answer = completion.choices[0]?.message?.content || "Sorry, I couldn't process that.";
+
+    res.json({ answer, source: "groq" });
   } catch (err) {
-    next(err);
+    console.error("Groq API Error:", err);
+    res.status(500).json({ error: "AI processing failed." });
   }
 }

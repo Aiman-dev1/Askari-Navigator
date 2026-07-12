@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import Tenant from "../models/Tenant.js";
 import { getPlans } from "../config/plans.js";
+import { logActivity } from "../utils/activityLogger.js";
 
 function getStripe() {
   return process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
@@ -65,6 +66,8 @@ export async function createCheckout(req, res, next) {
       tenant.currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
       await tenant.save();
 
+      logActivity(req, "BUILDING_STATUS_CHANGED", `Subscribed to ${plan.name} plan`, { resourceType: "tenant", resourceId: tenant._id });
+
       return res.json({ success: true, message: "Subscription activated" });
     }
 
@@ -99,6 +102,8 @@ export async function createCheckout(req, res, next) {
         metadata: { tenantId: tenant._id.toString(), planId: plan.id },
       },
     });
+
+    logActivity(req, "BUILDING_STATUS_CHANGED", `Initiated checkout for ${plan.name} plan`, { resourceType: "tenant", resourceId: tenant._id });
 
     res.json({ url: session.url });
   } catch (err) {

@@ -32,8 +32,15 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const login = async (email, password) =>
-    finishLogin(await api.post("/auth/login", { email, password, tenantSlug: DEFAULT_TENANT_SLUG }));
+  const login = async (email, password) => {
+    // First try without tenantSlug so super_admin (who has no tenantId) can log in.
+    // If the server can't find the user globally, retry scoped to the building.
+    try {
+      return finishLogin(await api.post("/auth/login", { email, password }));
+    } catch {
+      return finishLogin(await api.post("/auth/login", { email, password, tenantSlug: DEFAULT_TENANT_SLUG }));
+    }
+  };
 
   const register = async (username, email, password) =>
     finishLogin(

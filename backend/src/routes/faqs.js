@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 const router = Router();
 
 // Public — resolves the building from the JWT or ?tenantSlug=
-router.get("/ask", ask);
+router.post("/ask", ask);
 
 router.use(requireAuth);
 router.get("/", listFaqs);
