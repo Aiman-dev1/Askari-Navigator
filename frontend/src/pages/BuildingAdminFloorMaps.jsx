@@ -1,15 +1,105 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FiArrowLeft, FiUploadCloud, FiLayers, FiMap, FiTrash2, FiRefreshCw } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiUploadCloud,
+  FiLayers,
+  FiMap,
+  FiTrash2,
+  FiRefreshCw,
+  FiAlertTriangle,
+  FiX
+} from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api, API_URL } from "../lib/api";
+
+/* ── Custom Delete Confirmation Modal ── */
+function DeleteConfirmModal({ isOpen, onConfirm, onCancel, title, message, previewText }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-fade-in"
+        onClick={onCancel}
+      />
+
+      {/* Modal Card */}
+      <div className="relative bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-md mx-4 overflow-hidden animate-fade-in">
+        {/* Top accent bar */}
+        <div className="h-1 w-full bg-gradient-to-r from-red-400 to-red-600" />
+
+        {/* Close button */}
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+          aria-label="Close"
+        >
+          <FiX size={15} />
+        </button>
+
+        <div className="p-7">
+          {/* Icon */}
+          <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-5">
+            <FiAlertTriangle size={26} className="text-red-500" />
+          </div>
+
+          {/* Heading */}
+          <h3 className="text-xl font-serif font-bold text-slate-900 text-center uppercase tracking-wide mb-2">
+            {title}
+          </h3>
+          <p className="text-sm text-gray-500 text-center mb-4 leading-relaxed">
+            {message}
+          </p>
+
+          {/* Optional detail block */}
+          {previewText && (
+            <div className="bg-slate-50 border border-gray-200 rounded-lg px-4 py-3 mb-6">
+              <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Target</p>
+              <p className="text-sm text-slate-700 font-semibold leading-snug">
+                {previewText}
+              </p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={onCancel}
+              className="flex-1 px-5 py-2.5 rounded-lg border border-gray-200 text-slate-700 text-sm font-semibold uppercase tracking-wider hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="flex-1 px-5 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-bold uppercase tracking-wider transition-all shadow cursor-pointer hover:shadow-md"
+            >
+              Yes, Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function BuildingAdminFloorMaps() {
   const [tenant, setTenant] = useState(null);
   const [mapFloor, setMapFloor] = useState("");
   const [mapFile, setMapFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  // Custom Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: null, // "SINGLE" or "ALL"
+    floorNumber: null,
+    title: "",
+    message: "",
+    previewText: "",
+  });
 
   useEffect(() => {
     api
@@ -27,6 +117,7 @@ function BuildingAdminFloorMaps() {
       const data = await api.upload(`/tenants/mine/floors/${mapFloor}/map`, formData);
       setTenant(data.tenant);
       setMapFile(null);
+      setMapFloor("");
       toast.success(`Floor ${mapFloor} map uploaded`);
     } catch (err) {
       toast.error(err.message);
@@ -53,37 +144,46 @@ function BuildingAdminFloorMaps() {
     }
   };
 
-  const handleDeleteMap = async (floorNumber) => {
-    if (!window.confirm(`Are you sure you want to delete the floor plan for Floor ${floorNumber}? This action cannot be undone.`)) {
-      return;
-    }
-    try {
-      const data = await api.delete(`/tenants/mine/floors/${floorNumber}/map`);
-      setTenant(data.tenant);
-      toast.success(`Floor ${floorNumber} map deleted`);
-    } catch (err) {
-      toast.error(err.message);
-    }
+  /* ── Custom Modal Triggers ── */
+  const triggerDeleteMap = (floorNumber, floorName) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "SINGLE",
+      floorNumber,
+      title: "Delete Floor Plan?",
+      message: "Are you sure you want to delete this floor plan? This action cannot be undone.",
+      previewText: floorName || `Floor ${floorNumber}`,
+    });
   };
 
-  const handleDeleteAllMaps = async () => {
-    const confirmFirst = window.confirm(
-      "WARNING: Are you absolutely sure you want to delete ALL uploaded floor maps? This action cannot be undone."
-    );
-    if (!confirmFirst) return;
+  const triggerDeleteAllMaps = () => {
+    setConfirmModal({
+      isOpen: true,
+      type: "ALL",
+      floorNumber: null,
+      title: "Delete All Maps?",
+      message: "Are you sure you want to delete ALL uploaded floor maps? This action cannot be undone.",
+      previewText: "All Configured Floor Schematics",
+    });
+  };
 
-    const confirmSecond = window.confirm(
-      "Please confirm one more time: Do you want to permanently erase all schematics for all floors?"
-    );
-    if (!confirmSecond) return;
+  /* ── Modal Callback Handler ── */
+  const handleDeleteConfirm = async () => {
+    const { type, floorNumber } = confirmModal;
+    setConfirmModal((prev) => ({ ...prev, isOpen: false })); // Close modal immediately
 
     try {
-      // Calls your bulk deletion backend API route
-      const data = await api.delete("/tenants/mine/floors/maps/all");
-      setTenant(data.tenant);
-      toast.success("All floor maps have been deleted successfully.");
+      if (type === "SINGLE") {
+        const data = await api.delete(`/tenants/mine/floors/${floorNumber}/map`);
+        setTenant(data.tenant);
+        toast.success(`Floor ${floorNumber} map deleted`);
+      } else if (type === "ALL") {
+        const data = await api.delete("/tenants/mine/floors/maps/all");
+        setTenant(data.tenant);
+        toast.success("All floor maps have been deleted successfully.");
+      }
     } catch (err) {
-      toast.error(err.message || "Failed to delete all floor maps.");
+      toast.error(err.message);
     }
   };
 
@@ -92,6 +192,16 @@ function BuildingAdminFloorMaps() {
 
   return (
     <MainLayout>
+      {/* Styled Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        previewText={confirmModal.previewText}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
+
       <div className="max-w-6xl mx-auto px-6 py-12 min-h-[75vh]">
 
         {/* ── Page Header ── */}
@@ -204,11 +314,11 @@ function BuildingAdminFloorMaps() {
                 {uploaded.length} of {floors.length} floors
               </span>
 
-              {/* Delete All Button */}
+              {/* Delete All Button triggers the custom Modal */}
               {uploaded.length > 0 && (
                 <button
-                  onClick={handleDeleteAllMaps}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer"
+                  onClick={triggerDeleteAllMaps}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer animate-fade-in"
                 >
                   <FiTrash2 size={12} />
                   Delete All
@@ -256,7 +366,7 @@ function BuildingAdminFloorMaps() {
                           <FiRefreshCw size={14} />
                         </button>
                         <button
-                          onClick={() => handleDeleteMap(f.floorNumber)}
+                          onClick={() => triggerDeleteMap(f.floorNumber, f.name)}
                           title="Delete map"
                           className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50/50 transition-all cursor-pointer"
                         >
