@@ -38,29 +38,35 @@ function Navigation() {
 
   // Search the backend directory (debounced). A floor filter alone (no text)
   // lists everything on that floor; combined, both narrow the results.
-  useEffect(() => {
+  const runSearch = useCallback((forceLog = false) => {
     if (!search.trim() && floorFilter === null) {
       setResults([]);
       setSelected(null);
       return;
     }
 
-    const t = setTimeout(() => {
-      const params = new URLSearchParams();
-      if (search.trim()) params.set("query", search.trim());
-      if (floorFilter !== null) params.set("floor", floorFilter);
+    const params = new URLSearchParams();
+    if (search.trim()) params.set("query", search.trim());
+    if (floorFilter !== null) params.set("floor", floorFilter);
+    if (forceLog) params.set("log", "true");
 
-      api
-        .get(`/navigation/search?${params.toString()}`)
-        .then((data) => {
-          setResults(data.results);
-          setSelected(data.results[0] || null);
-        })
-        .catch((err) => toast.error(err.message));
+    api
+      .get(`/navigation/search?${params.toString()}`)
+      .then((data) => {
+        setResults(data.results);
+        setSelected(data.results[0] || null);
+      })
+      .catch((err) => toast.error(err.message));
+  }, [search, floorFilter]);
+
+  // Debounced search on typing or changing floor (without logging)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      runSearch(false);
     }, 300);
 
     return () => clearTimeout(t);
-  }, [search, floorFilter]);
+  }, [search, floorFilter, runSearch]);
 
   const floorLabel = (n) =>
     floors.find((f) => f.floorNumber === n)?.name || `Floor ${n}`;
@@ -87,6 +93,11 @@ function Navigation() {
             placeholder="Enter company or department name... (e.g. Ernst & Young)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                runSearch(true);
+              }
+            }}
             className="flex-1 border border-gray-200 p-4 rounded text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all bg-white shadow-sm"
           />
 

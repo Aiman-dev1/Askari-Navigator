@@ -182,3 +182,27 @@ export async function updateMyFloors(req, res, next) {
     next(err);
   }
 }
+
+// DELETE /api/v1/tenants/mine/floors/:floorNumber/map  (tenant admin)
+export async function deleteFloorMap(req, res, next) {
+  try {
+    const floorNumber = parseInt(req.params.floorNumber, 10);
+    if (Number.isNaN(floorNumber)) {
+      return res.status(400).json({ error: "Invalid floor number" });
+    }
+
+    const tenant = await Tenant.findById(req.user.tenantId);
+    if (!tenant) return res.status(404).json({ error: "Tenant not found" });
+
+    const floor = tenant.floors.find((f) => f.floorNumber === floorNumber);
+    if (floor) {
+      floor.mapUrl = null;
+      await tenant.save();
+      logActivity(req, "FLOOR_MAP_DELETED", `Deleted floor map for Floor ${floorNumber}`, { resourceType: "tenant", resourceId: tenant._id });
+    }
+
+    res.json({ floorNumber, tenant });
+  } catch (err) {
+    next(err);
+  }
+}

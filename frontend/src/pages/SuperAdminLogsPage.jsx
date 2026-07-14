@@ -20,6 +20,7 @@ const ACTION_META = {
   OFFICE_UPDATED: { label: "Office Updated", color: "bg-blue-100 text-blue-700", dot: "bg-blue-400" },
   OFFICE_DELETED: { label: "Office Deleted", color: "bg-red-100 text-red-600", dot: "bg-red-400" },
   FLOOR_MAP_UPLOADED: { label: "Floor Map Uploaded", color: "bg-purple-100 text-purple-700", dot: "bg-purple-400" },
+  FLOOR_MAP_DELETED: { label: "Floor Map Deleted", color: "bg-red-100 text-red-700", dot: "bg-red-500" },
   BUILDING_CREATED: { label: "Building Onboarded", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-400" },
   BUILDING_STATUS_CHANGED: { label: "Status Changed", color: "bg-amber-100 text-amber-700", dot: "bg-amber-400" },
   BUILDING_DELETED: { label: "Building Deleted", color: "bg-red-100 text-red-700", dot: "bg-red-500" },
@@ -90,7 +91,7 @@ function SuperAdminLogsPage() {
 
   useEffect(() => {
     loadLogs();
-    
+
     const socket = getSocket();
     socket.on("new_log", (newLog) => {
       // Check if log is a tenant_admin log (which super admins should see)
@@ -124,7 +125,7 @@ function SuperAdminLogsPage() {
             to="/super-admin"
             className="inline-flex items-center gap-2 text-[13px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
           >
-            Back to Dashboard
+            <FiArrowLeft /> Back
           </Link>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>

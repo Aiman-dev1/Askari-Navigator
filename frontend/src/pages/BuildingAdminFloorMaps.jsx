@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FiArrowLeft, FiUploadCloud, FiLayers, FiMap } from "react-icons/fi";
+import { FiArrowLeft, FiUploadCloud, FiLayers, FiMap, FiTrash2, FiRefreshCw } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api, API_URL } from "../lib/api";
 
@@ -35,6 +35,58 @@ function BuildingAdminFloorMaps() {
     }
   };
 
+  const handleReplaceMap = async (floorNumber, file) => {
+    if (!window.confirm(`Are you sure you want to replace the floor plan for Floor ${floorNumber}?`)) {
+      return;
+    }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("map", file);
+      const data = await api.upload(`/tenants/mine/floors/${floorNumber}/map`, formData);
+      setTenant(data.tenant);
+      toast.success(`Floor ${floorNumber} map replaced`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteMap = async (floorNumber) => {
+    if (!window.confirm(`Are you sure you want to delete the floor plan for Floor ${floorNumber}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      const data = await api.delete(`/tenants/mine/floors/${floorNumber}/map`);
+      setTenant(data.tenant);
+      toast.success(`Floor ${floorNumber} map deleted`);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteAllMaps = async () => {
+    const confirmFirst = window.confirm(
+      "WARNING: Are you absolutely sure you want to delete ALL uploaded floor maps? This action cannot be undone."
+    );
+    if (!confirmFirst) return;
+
+    const confirmSecond = window.confirm(
+      "Please confirm one more time: Do you want to permanently erase all schematics for all floors?"
+    );
+    if (!confirmSecond) return;
+
+    try {
+      // Calls your bulk deletion backend API route
+      const data = await api.delete("/tenants/mine/floors/maps/all");
+      setTenant(data.tenant);
+      toast.success("All floor maps have been deleted successfully.");
+    } catch (err) {
+      toast.error(err.message || "Failed to delete all floor maps.");
+    }
+  };
+
   const floors = tenant?.floors || [];
   const uploaded = floors.filter((f) => f.mapUrl);
 
@@ -48,7 +100,7 @@ function BuildingAdminFloorMaps() {
             to="/building-admin"
             className="inline-flex items-center gap-2 text-[14px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
           >
-            Back to Dashboard
+            <FiArrowLeft /> Back
           </Link>
 
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
@@ -137,7 +189,7 @@ function BuildingAdminFloorMaps() {
         <div className="bg-white border border-gray-200/60 shadow-md rounded-lg p-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40" />
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 shrink-0">
                 <FiMap size={16} />
@@ -146,9 +198,23 @@ function BuildingAdminFloorMaps() {
                 Uploaded Floor Plans
               </h2>
             </div>
-            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">
-              {uploaded.length} of {floors.length} floors
-            </span>
+
+            <div className="flex items-center gap-3 self-end sm:self-auto">
+              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap">
+                {uploaded.length} of {floors.length} floors
+              </span>
+
+              {/* Delete All Button */}
+              {uploaded.length > 0 && (
+                <button
+                  onClick={handleDeleteAllMaps}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer"
+                >
+                  <FiTrash2 size={12} />
+                  Delete All
+                </button>
+              )}
+            </div>
           </div>
 
           {uploaded.length === 0 ? (
@@ -161,16 +227,49 @@ function BuildingAdminFloorMaps() {
               {uploaded.map((f) => (
                 <div
                   key={f.floorNumber}
-                  className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors"
+                  className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors flex flex-col justify-between"
                 >
-                  <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-3">
-                    {f.name || `Floor ${f.floorNumber}`}
-                  </p>
-                  <img
-                    src={`${API_URL}${f.mapUrl}`}
-                    alt={`Floor ${f.floorNumber} map`}
-                    className="w-full h-40 object-contain bg-white rounded border border-gray-100"
-                  />
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+                        {f.name || `Floor ${f.floorNumber}`}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {/* Hidden input for replacing */}
+                        <input
+                          type="file"
+                          accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
+                          style={{ display: "none" }}
+                          id={`replace-input-${f.floorNumber}`}
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              handleReplaceMap(f.floorNumber, file);
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={() => document.getElementById(`replace-input-${f.floorNumber}`).click()}
+                          title="Replace map"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-gold-600 hover:bg-gold-50/50 transition-all cursor-pointer"
+                        >
+                          <FiRefreshCw size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMap(f.floorNumber)}
+                          title="Delete map"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50/50 transition-all cursor-pointer"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <img
+                      src={`${API_URL}${f.mapUrl}`}
+                      alt={`Floor ${f.floorNumber} map`}
+                      className="w-full h-40 object-contain bg-white rounded border border-gray-100"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

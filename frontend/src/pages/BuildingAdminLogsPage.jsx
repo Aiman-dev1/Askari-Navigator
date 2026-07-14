@@ -15,10 +15,7 @@ import { getSocket } from "../lib/socket";
 const ACTION_META = {
   NAVIGATION_SEARCH: { label: "Navigation Search", color: "bg-slate-100 text-slate-600", dot: "bg-slate-400" },
   DIRECTIONS_VIEWED: { label: "Directions Viewed", color: "bg-sky-100 text-sky-700", dot: "bg-sky-400" },
-  FAQ_CREATED: { label: "FAQ Added", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-400" },
-  FAQ_DELETED: { label: "FAQ Deleted", color: "bg-red-100 text-red-600", dot: "bg-red-400" },
-  OFFICE_CREATED: { label: "Office Added", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-400" },
-  OFFICE_DELETED: { label: "Office Deleted", color: "bg-red-100 text-red-600", dot: "bg-red-400" },
+  NEW_USER: { label: "User / Guest Joined", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-400" },
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META);
@@ -86,13 +83,11 @@ function BuildingAdminLogsPage() {
 
   useEffect(() => {
     loadLogs();
-    
+
     const socket = getSocket();
     socket.on("new_log", (newLog) => {
-      // Check if log is a user log (which building admins should see)
-      if (newLog.actorRole === "user") {
+      if (newLog.actorRole === "user" || newLog.action === "NEW_USER") {
         setLogs((prev) => {
-          // Avoid duplicate items if user manually refreshes
           if (prev.some(p => p._id === newLog._id)) return prev;
           return [newLog, ...prev];
         });
@@ -124,7 +119,7 @@ function BuildingAdminLogsPage() {
             to="/building-admin"
             className="inline-flex items-center gap-2 text-[13px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
           >
-            Back to Dashboard
+            <FiArrowLeft /> Back
           </Link>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -163,19 +158,22 @@ function BuildingAdminLogsPage() {
           ))}
         </div>
 
-        {/* Filters */}
-        <div className="bg-white border border-gray-200/60 shadow-sm rounded-xl p-5 mb-6 flex flex-wrap gap-3 items-center">
-          <FiFilter size={13} className="text-gray-400 shrink-0" />
+        {/* Filters Layout (Stacked vertically) */}
+        <div className="bg-white border border-gray-200/60 shadow-sm rounded-xl p-5 mb-6 flex flex-col gap-4">
+          {/* Top Row: Full-width Search Input */}
+          <div className="relative flex items-center w-full">
+            <FiFilter size={14} className="absolute left-3.5 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by action or user..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 bg-slate-50/50 transition-all"
+            />
+          </div>
 
-          <input
-            type="text"
-            placeholder="Search by action or user..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 bg-slate-50/50 transition-all"
-          />
-
-          <div className="flex flex-wrap gap-1.5">
+          {/* Bottom Row: Filter Buttons */}
+          <div className="flex flex-wrap gap-1.5 items-center">
             <button
               onClick={() => setFilter("ALL")}
               className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer ${filter === "ALL" ? "bg-slate-900 text-gold-400 border-slate-900" : "border-gray-200 text-gray-500 hover:border-gold-400 hover:text-gold-500"}`}

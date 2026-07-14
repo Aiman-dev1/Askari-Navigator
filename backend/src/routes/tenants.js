@@ -8,6 +8,7 @@ import {
   getMyTenant,
   updateMyFloors,
   uploadFloorMap,
+  deleteFloorMap,
 } from "../controllers/tenantController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { uploadFloorPlan } from "../middleware/upload.js";
@@ -26,6 +27,12 @@ router.post(
   requireRole("tenant_admin"),
   uploadFloorPlan.single("map"),
   uploadFloorMap
+);
+router.delete(
+  "/mine/floors/:floorNumber/map",
+  requireAuth,
+  requireRole("tenant_admin"),
+  deleteFloorMap
 );
 
 // Super admin — manage all buildings/subscriptions
