@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { FiFilter, FiX } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
