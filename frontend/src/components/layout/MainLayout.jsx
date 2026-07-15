@@ -1,12 +1,12 @@
 import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import AIAssistantWidget from "../common/AIAssistantWidget";
-import { useAuth } from "../../context/AuthContext";
 
 function MainLayout({ children }) {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const isHome =
     location.pathname === "/" ||

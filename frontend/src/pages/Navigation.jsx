@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { FiFilter, FiX } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api, API_URL } from "../lib/api";
-import { DEFAULT_TENANT_SLUG } from "../context/AuthContext";
+import { DEFAULT_TENANT_SLUG } from "../store/slices/authSlice";
 
 function Navigation() {
   const [search, setSearch] = useState("");

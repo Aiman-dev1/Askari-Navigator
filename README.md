@@ -2,7 +2,7 @@
 
 A multi-tenant SaaS application for modern commercial towers, corporate offices, and co-working spaces, deployed for **Askari Corporate Tower** (Liberty Roundabout, Gulberg III, Lahore). It solves two problems: **indoor navigation** for new visitors/employees and **community engagement** within a physical building.
 
-Built on the MERN stack: **MongoDB · Express.js · React (Vite) · Node.js**, with **Socket.io** for real-time chat and **Stripe** for subscriptions.
+Built on the MERN stack: **MongoDB · Express.js · React (Vite) · Node.js**, with **Redux Toolkit** for state management, **Socket.io** for real-time chat, and **Stripe** for subscriptions.
 
 ## Features
 
@@ -32,7 +32,7 @@ Built on the MERN stack: **MongoDB · Express.js · React (Vite) · Node.js**, w
 │   └── src/
 │       ├── pages/        # Route pages (Login, Chat, Navigation, admin pages, ...)
 │       ├── components/   # Layout, dashboard cards, AI concierge widget
-│       ├── context/      # AuthContext (JWT session, role routing, cross-tab sync)
+│       ├── store/        # Redux Toolkit store and slices (auth state, cross-tab sync)
 │       ├── lib/          # api.js (REST client) + socket.js (Socket.io client)
 │       └── routes/       # AppRoutes with role-protected routes
 ├── backend/              # Node.js API (Express + Mongoose + Socket.io + Stripe)
@@ -113,4 +113,4 @@ Per the [product scope document](<docs/TowerNav & Chat — Product Scope Documen
 - [x] Phase 1 — multi-tenant database, auth (super/tenant/user + guests), tenant admin directory management
 - [x] Phase 2 — navigation search & wayfinding, Socket.io chat engine, random matching, responsive React frontend
 - [x] Phase 3 — Stripe subscriptions (PKR), floor-plan uploads, profanity filter, PWA, deployment packaging
-- [x] Post-launch polish — real Askari floor plans & FAQs, AI concierge widget, typing indicators, role-aware navigation, admin sub-pages
+- [x] Post-launch polish — real Askari floor plans & FAQs, AI concierge widget, typing indicators, role-aware navigation, admin sub-pages, Redux state management migration

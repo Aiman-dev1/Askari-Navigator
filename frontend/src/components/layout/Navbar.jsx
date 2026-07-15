@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { FiSettings, FiUser, FiLogOut, FiMenu, FiX } from "react-icons/fi";
-import { useAuth, homeRouteFor } from "../../context/AuthContext";
+import { logout, homeRouteFor } from "../../store/slices/authSlice";
 
 function Navbar({ isHome }) {
-  const { user, logout } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isLanding = pathname === "/";
@@ -16,7 +18,7 @@ function Navbar({ isHome }) {
   const handleLogout = () => {
     setMenuOpen(false);
     setMobileOpen(false);
-    logout();
+    dispatch(logout());
     navigate("/");
   };
 

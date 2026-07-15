@@ -3,10 +3,10 @@ import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
 import { api } from "../lib/api";
 import { getSocket } from "../lib/socket";
-import { useAuth } from "../context/AuthContext";
+import { useSelector } from "react-redux";
 
 function Chat() {
-  const { user } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const [rooms, setRooms] = useState([]);
   const [activeRoom, setActiveRoom] = useState(null);
   const [messages, setMessages] = useState([]);

@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
-import { useAuth, homeRouteFor } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { login, guestLogin, homeRouteFor } from "../store/slices/authSlice";
 import heroImg from "../assets/hero.png";
 
 function Login() {
-  const { login, guestLogin } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -21,11 +22,11 @@ function Login() {
     if (!trimmedEmail || !trimmedPassword) return toast.error("Enter email and password");
     setLoading(true);
     try {
-      const user = await login(trimmedEmail, trimmedPassword);
+      const user = await dispatch(login({ email: trimmedEmail, password: trimmedPassword })).unwrap();
       toast.success(`Welcome back, ${user.username}!`);
       navigate(homeRouteFor(user));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || err);
     } finally {
       setLoading(false);
     }
@@ -47,11 +48,11 @@ function Login() {
 
     setLoading(true);
     try {
-      const user = await guestLogin(trimmed);
+      const user = await dispatch(guestLogin(trimmed)).unwrap();
       toast.success(`Welcome, ${user.username}!`);
       navigate("/user");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || err);
     } finally {
       setLoading(false);
     }

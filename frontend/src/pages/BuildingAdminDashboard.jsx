@@ -9,6 +9,7 @@ import {
 import MainLayout from "../components/layout/MainLayout";
 import { api } from "../lib/api";
 import BillingFormModal from "../components/common/BillingFormModal";
+import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 
 /* ── Reusable section card wrapper ── */
 function SectionCard({ accent = "gold", children, className = "" }) {
@@ -51,6 +52,7 @@ function BuildingAdminDashboard() {
   const [plans, setPlans] = useState([]);
 
   const [billingModal, setBillingModal] = useState({ isOpen: false, planId: null, plan: null });
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, officeName: "" });
 
   useEffect(() => {
     api
@@ -135,8 +137,13 @@ function BuildingAdminDashboard() {
     }
   };
 
-  const deleteOffice = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this office?")) return;
+  const triggerDeleteOffice = (id, officeName) => {
+    setDeleteModal({ isOpen: true, id, officeName });
+  };
+
+  const confirmDeleteOffice = async () => {
+    const { id } = deleteModal;
+    setDeleteModal({ isOpen: false, id: null, officeName: "" });
     try {
       await api.delete(`/offices/${id}`);
       setOffices(offices.filter((item) => item._id !== id));
@@ -158,6 +165,15 @@ function BuildingAdminDashboard() {
 
   return (
     <MainLayout>
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Office Listing?"
+        message="Are you sure you want to delete this office? This action cannot be undone."
+        previewLabel="Office Name"
+        previewText={deleteModal.officeName}
+        onConfirm={confirmDeleteOffice}
+        onCancel={() => setDeleteModal({ isOpen: false, id: null, officeName: "" })}
+      />
       <div className="max-w-7xl mx-auto px-6 py-12 min-h-screen">
 
         {/* ── Page Header ── */}
@@ -253,7 +269,7 @@ function BuildingAdminDashboard() {
                       <td className="p-4 text-sm text-gray-600">{item.room}</td>
                       <td className="p-4 text-center">
                         <button
-                          onClick={() => deleteOffice(item._id)}
+                          onClick={() => triggerDeleteOffice(item._id, item.name)}
                           className="border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
                         >
                           Delete

@@ -3,7 +3,8 @@ import toast from "react-hot-toast";
 import { FiMail, FiHome, FiShield, FiCalendar, FiEdit2, FiCheck, FiX } from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api } from "../lib/api";
-import { useAuth, DEFAULT_TENANT_SLUG } from "../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUsername, DEFAULT_TENANT_SLUG } from "../store/slices/authSlice";
 
 const ROLE_LABELS = {
   super_admin: "Super Admin",
@@ -28,7 +29,8 @@ function DetailTile({ icon: Icon, label, value }) {
 }
 
 function Profile() {
-  const { user, updateUsername } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [building, setBuilding] = useState("");
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -44,7 +46,7 @@ function Profile() {
     if (!trimmed || trimmed === user?.username) return setEditing(false);
     setSaving(true);
     try {
-      await updateUsername(trimmed);
+      await dispatch(updateUsername(trimmed)).unwrap();
       toast.success("Name updated");
       setEditing(false);
     } catch (err) {
