@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FiMessageSquare, FiX, FiSend } from "react-icons/fi";
 import { api } from "../../lib/api";
-import { DEFAULT_TENANT_SLUG } from "../../context/AuthContext";
+import { DEFAULT_TENANT_SLUG } from "../../store/slices/authSlice";
 
 // Floating AI concierge — bottom-right chat bubble, like a typical
 // website support widget. Answers from the building FAQs + directory.

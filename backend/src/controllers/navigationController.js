@@ -20,8 +20,8 @@ export async function search(req, res, next) {
 
     const results = await Office.find(filter).sort({ name: 1 }).limit(50);
 
-    // Log user searches (only when a real query is provided)
-    if (query.trim()) {
+    // Log user searches (only when log=true and query is provided)
+    if (query.trim() && req.query.log === "true") {
       logActivity(req, "NAVIGATION_SEARCH", `Searched for: "${query.trim()}" (${results.length} result${results.length === 1 ? "" : "s"})`);
     }
 

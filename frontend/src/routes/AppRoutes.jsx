@@ -14,10 +14,10 @@ import BuildingAdminLogsPage from "../pages/BuildingAdminLogsPage";
 import Navigation from "../pages/Navigation";
 import Chat from "../pages/Chat";
 import Profile from "../pages/Profile";
-import { useAuth } from "../context/AuthContext";
+import { useSelector } from "react-redux";
 
 function Protected({ children, roles }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user?.role)) return <Navigate to="/user" replace />;
   return children;

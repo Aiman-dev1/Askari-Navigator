@@ -75,7 +75,7 @@ function Footer() {
 
         <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 gap-4">
           <p>
-            © 2026 ASKARI CORPORATE TOWER | Maintained by Group MIS Dept AWT.
+            © 2026 ASKARI CORPORATE TOWER. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-gold-400 transition-colors">Privacy Policy</a>

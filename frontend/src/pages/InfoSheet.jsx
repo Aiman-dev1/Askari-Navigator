@@ -15,7 +15,7 @@ import MainLayout from "../components/layout/MainLayout";
 /* ── Section card ── */
 function InfoCard({ icon: Icon, title, accent = "gold", children }) {
   const accentBar = accent === "red" ? "bg-red-500/40" : "bg-gold-400/40";
-  const iconBg    = accent === "red" ? "bg-red-500/10 border-red-500/20 text-red-500" : "bg-gold-400/10 border-gold-400/20 text-gold-600";
+  const iconBg = accent === "red" ? "bg-red-500/10 border-red-500/20 text-red-500" : "bg-gold-400/10 border-gold-400/20 text-gold-600";
 
   return (
     <div className="bg-white border border-gray-200/60 shadow-sm hover:shadow-md rounded-lg p-7 relative overflow-hidden transition-shadow duration-300">
@@ -48,10 +48,10 @@ function InfoRow({ label, value, highlight = false }) {
 /* ── Pill badge ── */
 function Pill({ children, color = "green" }) {
   const classes = {
-    green:  "bg-green-100 text-green-700 border-green-200",
-    blue:   "bg-blue-100 text-blue-700 border-blue-200",
-    gold:   "bg-gold-100 text-gold-700 border-gold-200",
-    red:    "bg-red-100 text-red-600 border-red-200",
+    green: "bg-green-100 text-green-700 border-green-200",
+    blue: "bg-blue-100 text-blue-700 border-blue-200",
+    gold: "bg-gold-100 text-gold-700 border-gold-200",
+    red: "bg-red-100 text-red-600 border-red-200",
   };
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider border px-2.5 py-0.5 rounded-full ${classes[color]}`}>
@@ -71,7 +71,7 @@ function InfoSheet() {
             to="/building-admin"
             className="inline-flex items-center gap-2 text-[14px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
           >
-            Back to Dashboard
+            <FiArrowLeft /> Back
           </Link>
 
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -105,8 +105,8 @@ function InfoSheet() {
           <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { label: "Building Name", value: "Apex Tower" },
-              { label: "Total Floors",  value: "36 Floors" },
-              { label: "Location",      value: "Lahore, Pakistan" },
+              { label: "Total Floors", value: "36 Floors" },
+              { label: "Location", value: "Lahore, Pakistan" },
               { label: "Certification", value: "LEED Gold Certified" },
             ].map((item) => (
               <div key={item.label}>
@@ -122,22 +122,22 @@ function InfoSheet() {
 
           {/* Hours of Operation */}
           <InfoCard icon={FiClock} title="Hours of Operation">
-            <InfoRow label="Main Lobby"          value="Monday – Friday: 7:00 AM – 10:00 PM" />
-            <InfoRow label="Weekend Lobby"       value="Saturday: 8:00 AM – 8:00 PM" />
-            <InfoRow label="Sunday"              value="Closed to general public" />
-            <InfoRow label="24/7 Access"         value="Registered tenants with key cards" highlight />
-            <InfoRow label="Reception Desk"      value="24 Hours · 7 Days a Week" highlight />
-            <InfoRow label="Parking Gate"        value="Open 6:00 AM – 11:00 PM" />
+            <InfoRow label="Main Lobby" value="Monday – Friday: 7:00 AM – 10:00 PM" />
+            <InfoRow label="Weekend Lobby" value="Saturday: 8:00 AM – 8:00 PM" />
+            <InfoRow label="Sunday" value="Closed to general public" />
+            <InfoRow label="24/7 Access" value="Registered tenants with key cards" highlight />
+            <InfoRow label="Reception Desk" value="24 Hours · 7 Days a Week" highlight />
+            <InfoRow label="Parking Gate" value="Open 6:00 AM – 11:00 PM" />
           </InfoCard>
 
           {/* Emergency Contacts */}
           <InfoCard icon={FiPhone} title="Emergency Contacts" accent="red">
             <InfoRow label="Security Control Room" value="+92-42-111-275-274" highlight />
-            <InfoRow label="Building Management"   value="+92-300-123-4567" />
-            <InfoRow label="Fire Emergency"        value="1122" highlight />
-            <InfoRow label="Police"                value="15" highlight />
-            <InfoRow label="Ambulance / Rescue"    value="1122" />
-            <InfoRow label="WAPDA (Power)"         value="118" />
+            <InfoRow label="Building Management" value="+92-300-123-4567" />
+            <InfoRow label="Fire Emergency" value="1122" highlight />
+            <InfoRow label="Police" value="15" highlight />
+            <InfoRow label="Ambulance / Rescue" value="1122" />
+            <InfoRow label="WAPDA (Power)" value="118" />
           </InfoCard>
 
         </div>
@@ -172,12 +172,12 @@ function InfoSheet() {
 
           {/* Parking & Access */}
           <InfoCard icon={FiTruck} title="Parking &amp; Access">
-            <InfoRow label="Basement Levels"    value="B1 – B3 (750 spaces)" />
-            <InfoRow label="Tenant Reserved"    value="Floors B1 &amp; B2" highlight />
-            <InfoRow label="Visitor Parking"    value="Floor B3 — first 2 hrs free" />
-            <InfoRow label="Motorcycle Bays"    value="Ground floor east entrance" />
-            <InfoRow label="Delivery Access"    value="Loading Bay — West Wing" />
-            <InfoRow label="Key Card Required"  value="Yes — issued by management" highlight />
+            <InfoRow label="Basement Levels" value="B1 – B3 (750 spaces)" />
+            <InfoRow label="Tenant Reserved" value="Floors B1 &amp; B2" highlight />
+            <InfoRow label="Visitor Parking" value="Floor B3 — first 2 hrs free" />
+            <InfoRow label="Motorcycle Bays" value="Ground floor east entrance" />
+            <InfoRow label="Delivery Access" value="Loading Bay — West Wing" />
+            <InfoRow label="Key Card Required" value="Yes — issued by management" highlight />
           </InfoCard>
 
         </div>

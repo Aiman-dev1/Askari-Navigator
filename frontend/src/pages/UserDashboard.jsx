@@ -1,10 +1,10 @@
 import MainLayout from "../components/layout/MainLayout";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import DashboardCard from "../components/dashboard/DashboardCard";
-import { useAuth } from "../context/AuthContext";
+import { useSelector } from "react-redux";
 
 function UserDashboard() {
-  const { user } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   return (
     <MainLayout>

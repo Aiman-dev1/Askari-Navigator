@@ -3,10 +3,10 @@ import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
 import OfficeCard from "../components/common/OfficeCard";
 import { api } from "../lib/api";
-import { useAuth } from "../context/AuthContext";
+import { useSelector } from "react-redux";
 
 function OfficeDirectory() {
-  const { user } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const [offices, setOffices] = useState([]);
   const [search, setSearch] = useState("");
 

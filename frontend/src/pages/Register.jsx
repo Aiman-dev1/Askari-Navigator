@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import MainLayout from "../components/layout/MainLayout";
-import { useAuth } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { register } from "../store/slices/authSlice";
 import heroImg from "../assets/hero.png";
 
 function Register() {
-  const { register } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -24,11 +25,11 @@ function Register() {
     if (trimmedPassword.length < 6) return toast.error("Password must be at least 6 characters");
     setLoading(true);
     try {
-      const user = await register(trimmedName, trimmedEmail, trimmedPassword);
+      const user = await dispatch(register({ username: trimmedName, email: trimmedEmail, password: trimmedPassword })).unwrap();
       toast.success(`Account created. Welcome, ${user.username}!`);
       navigate("/user");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || err);
     } finally {
       setLoading(false);
     }

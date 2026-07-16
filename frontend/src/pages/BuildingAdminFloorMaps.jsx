@@ -1,15 +1,36 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { FiArrowLeft, FiUploadCloud, FiLayers, FiMap } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiUploadCloud,
+  FiLayers,
+  FiMap,
+  FiTrash2,
+  FiRefreshCw,
+  FiAlertTriangle,
+  FiX
+} from "react-icons/fi";
 import MainLayout from "../components/layout/MainLayout";
 import { api, API_URL } from "../lib/api";
+
+import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 
 function BuildingAdminFloorMaps() {
   const [tenant, setTenant] = useState(null);
   const [mapFloor, setMapFloor] = useState("");
   const [mapFile, setMapFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  // Custom Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: null, // "SINGLE" or "ALL"
+    floorNumber: null,
+    title: "",
+    message: "",
+    previewText: "",
+  });
 
   useEffect(() => {
     api
@@ -27,6 +48,7 @@ function BuildingAdminFloorMaps() {
       const data = await api.upload(`/tenants/mine/floors/${mapFloor}/map`, formData);
       setTenant(data.tenant);
       setMapFile(null);
+      setMapFloor("");
       toast.success(`Floor ${mapFloor} map uploaded`);
     } catch (err) {
       toast.error(err.message);
@@ -35,11 +57,82 @@ function BuildingAdminFloorMaps() {
     }
   };
 
+  const handleReplaceMap = async (floorNumber, file) => {
+    if (!window.confirm(`Are you sure you want to replace the floor plan for Floor ${floorNumber}?`)) {
+      return;
+    }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("map", file);
+      const data = await api.upload(`/tenants/mine/floors/${floorNumber}/map`, formData);
+      setTenant(data.tenant);
+      toast.success(`Floor ${floorNumber} map replaced`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  /* ── Custom Modal Triggers ── */
+  const triggerDeleteMap = (floorNumber, floorName) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "SINGLE",
+      floorNumber,
+      title: "Delete Floor Plan?",
+      message: "Are you sure you want to delete this floor plan? This action cannot be undone.",
+      previewText: floorName || `Floor ${floorNumber}`,
+    });
+  };
+
+  const triggerDeleteAllMaps = () => {
+    setConfirmModal({
+      isOpen: true,
+      type: "ALL",
+      floorNumber: null,
+      title: "Delete All Maps?",
+      message: "Are you sure you want to delete ALL uploaded floor maps? This action cannot be undone.",
+      previewText: "All Configured Floor Schematics",
+    });
+  };
+
+  /* ── Modal Callback Handler ── */
+  const handleDeleteConfirm = async () => {
+    const { type, floorNumber } = confirmModal;
+    setConfirmModal((prev) => ({ ...prev, isOpen: false })); // Close modal immediately
+
+    try {
+      if (type === "SINGLE") {
+        const data = await api.delete(`/tenants/mine/floors/${floorNumber}/map`);
+        setTenant(data.tenant);
+        toast.success(`Floor ${floorNumber} map deleted`);
+      } else if (type === "ALL") {
+        const data = await api.delete("/tenants/mine/floors/maps/all");
+        setTenant(data.tenant);
+        toast.success("All floor maps have been deleted successfully.");
+      }
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const floors = tenant?.floors || [];
   const uploaded = floors.filter((f) => f.mapUrl);
 
   return (
     <MainLayout>
+      {/* Styled Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        previewText={confirmModal.previewText}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
+
       <div className="max-w-6xl mx-auto px-6 py-12 min-h-[75vh]">
 
         {/* ── Page Header ── */}
@@ -48,7 +141,7 @@ function BuildingAdminFloorMaps() {
             to="/building-admin"
             className="inline-flex items-center gap-2 text-[14px] uppercase tracking-widest font-bold text-gold-600 hover:text-gold-500 transition-colors mb-4"
           >
-            Back to Dashboard
+            <FiArrowLeft /> Back
           </Link>
 
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-wide uppercase">
@@ -137,7 +230,7 @@ function BuildingAdminFloorMaps() {
         <div className="bg-white border border-gray-200/60 shadow-md rounded-lg p-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40" />
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 shrink-0">
                 <FiMap size={16} />
@@ -146,9 +239,23 @@ function BuildingAdminFloorMaps() {
                 Uploaded Floor Plans
               </h2>
             </div>
-            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">
-              {uploaded.length} of {floors.length} floors
-            </span>
+
+            <div className="flex items-center gap-3 self-end sm:self-auto">
+              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap">
+                {uploaded.length} of {floors.length} floors
+              </span>
+
+              {/* Delete All Button triggers the custom Modal */}
+              {uploaded.length > 0 && (
+                <button
+                  onClick={triggerDeleteAllMaps}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer animate-fade-in"
+                >
+                  <FiTrash2 size={12} />
+                  Delete All
+                </button>
+              )}
+            </div>
           </div>
 
           {uploaded.length === 0 ? (
@@ -161,16 +268,49 @@ function BuildingAdminFloorMaps() {
               {uploaded.map((f) => (
                 <div
                   key={f.floorNumber}
-                  className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors"
+                  className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors flex flex-col justify-between"
                 >
-                  <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold mb-3">
-                    {f.name || `Floor ${f.floorNumber}`}
-                  </p>
-                  <img
-                    src={`${API_URL}${f.mapUrl}`}
-                    alt={`Floor ${f.floorNumber} map`}
-                    className="w-full h-40 object-contain bg-white rounded border border-gray-100"
-                  />
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+                        {f.name || `Floor ${f.floorNumber}`}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {/* Hidden input for replacing */}
+                        <input
+                          type="file"
+                          accept=".svg,.png,.jpg,.jpeg,.webp,image/svg+xml,image/png,image/jpeg,image/webp"
+                          style={{ display: "none" }}
+                          id={`replace-input-${f.floorNumber}`}
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              handleReplaceMap(f.floorNumber, file);
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={() => document.getElementById(`replace-input-${f.floorNumber}`).click()}
+                          title="Replace map"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-gold-600 hover:bg-gold-50/50 transition-all cursor-pointer"
+                        >
+                          <FiRefreshCw size={14} />
+                        </button>
+                        <button
+                          onClick={() => triggerDeleteMap(f.floorNumber, f.name)}
+                          title="Delete map"
+                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50/50 transition-all cursor-pointer"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <img
+                      src={`${API_URL}${f.mapUrl}`}
+                      alt={`Floor ${f.floorNumber} map`}
+                      className="w-full h-40 object-contain bg-white rounded border border-gray-100"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
