@@ -16,7 +16,7 @@ function MainLayout({ children }) {
   return (
     <>
       <Navbar isHome={isHome} />
-      <main>{children}</main>
+      <main className="min-h-screen pb-24 sm:pb-28">{children}</main>
       {(location.pathname === "/" || (isAuthenticated && !isHome)) && <AIAssistantWidget />}
       <Footer />
     </>

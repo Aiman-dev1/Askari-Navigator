@@ -14,6 +14,28 @@ function publicUser(user) {
   };
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || "").trim());
+}
+
+function isValidPakistaniCnic(value) {
+  return /^\d{5}-\d{7}-\d$/.test((value || "").trim());
+}
+
+function isValidPassportNumber(value) {
+  const normalized = (value || "").trim().replace(/[\s-]+/g, "");
+  if (!normalized) return false;
+  if (!/^[A-Za-z0-9]+$/.test(normalized)) return false;
+  if (normalized.length < 4 || normalized.length > 12) return false;
+  if (!/[A-Za-z]/.test(normalized) || !/\d/.test(normalized)) return false;
+
+  return /^(?:[A-Z]{1,2}\d{4,9}|[A-Z]{2}\d{4,8}|[A-Z]{1,2}\d{4,8}[A-Z]|\d{2}[A-Z]{2}\d{4,8}|\d{1,2}[A-Z]{1,2}\d{4,7})$/i.test(normalized);
+}
+
+function isValidGuestIdentifier(value) {
+  return isValidEmail(value) || isValidPakistaniCnic(value) || isValidPassportNumber(value);
+}
+
 // POST /api/v1/auth/register  { username, email, password, tenantSlug }
 export async function register(req, res, next) {
   try {
@@ -85,7 +107,12 @@ export async function guest(req, res, next) {
   try {
     const { username, tenantSlug } = req.body;
     if (!username || !tenantSlug) {
-      return res.status(400).json({ error: "username and tenantSlug are required" });
+      return res.status(400).json({ error: "passport number and tenantSlug are required" });
+    }
+
+    const guestIdentifier = username.trim();
+    if (!isValidGuestIdentifier(guestIdentifier)) {
+      return res.status(400).json({ error: "Please provide a valid email, Pakistani CNIC, or passport number" });
     }
 
     const tenant = await Tenant.findOne({ slug: tenantSlug.toLowerCase() });
@@ -96,7 +123,7 @@ export async function guest(req, res, next) {
 
     const user = await User.create({
       tenantId: tenant._id,
-      username,
+      username: guestIdentifier,
       role: "user",
       isGuest: true,
     });

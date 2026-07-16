@@ -5,6 +5,28 @@ import MainLayout from "../components/layout/MainLayout";
 import { useAuth, homeRouteFor } from "../context/AuthContext";
 import heroImg from "../assets/hero.png";
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || "").trim());
+}
+
+function isValidPakistaniCnic(value) {
+  return /^\d{5}-\d{7}-\d$/.test((value || "").trim());
+}
+
+function isValidPassportNumber(value) {
+  const normalized = (value || "").trim().replace(/[\s-]+/g, "");
+  if (!normalized) return false;
+  if (!/^[A-Za-z0-9]+$/.test(normalized)) return false;
+  if (normalized.length < 4 || normalized.length > 12) return false;
+  if (!/[A-Za-z]/.test(normalized) || !/\d/.test(normalized)) return false;
+
+  return /^(?:[A-Z]{1,2}\d{4,9}|[A-Z]{2}\d{4,8}|[A-Z]{1,2}\d{4,8}[A-Z]|\d{2}[A-Z]{2}\d{4,8}|\d{1,2}[A-Z]{1,2}\d{4,7})$/i.test(normalized);
+}
+
+function isValidGuestIdentifier(value) {
+  return isValidEmail(value) || isValidPakistaniCnic(value) || isValidPassportNumber(value);
+}
+
 function Login() {
   const { login, guestLogin } = useAuth();
   const navigate = useNavigate();
@@ -33,16 +55,10 @@ function Login() {
 
   const handleGuest = async () => {
     const trimmed = guestName.trim();
-    if (!trimmed) return toast.error("Pick a username first");
+    if (!trimmed) return toast.error("Enter your email, CNIC, or passport number");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const cnicRegex = /^\d{5}-\d{7}-\d{1}$/; // Real CNIC pattern with hyphens
-    const passportRegex = /^[A-Z][0-9]{7,9}$/i; // Basic real passport pattern
-
-    const isValidGuest = emailRegex.test(trimmed) || cnicRegex.test(trimmed) || passportRegex.test(trimmed);
-
-    if (!isValidGuest) {
-      return toast.error("Please enter a valid Email, CNIC (e.g. 12345-1234567-1), or Passport Number");
+    if (!isValidGuestIdentifier(trimmed)) {
+      return toast.error("Please enter a valid email, CNIC (e.g. 12345-1234567-1), or passport number");
     }
 
     setLoading(true);
