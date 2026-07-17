@@ -21,6 +21,7 @@ function BuildingAdminFloorMaps() {
   const [mapFloor, setMapFloor] = useState("");
   const [mapFile, setMapFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedMaps, setSelectedMaps] = useState(new Set());
 
   // Custom Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -76,42 +77,47 @@ function BuildingAdminFloorMaps() {
   };
 
   /* ── Custom Modal Triggers ── */
-  const triggerDeleteMap = (floorNumber, floorName) => {
-    setConfirmModal({
-      isOpen: true,
-      type: "SINGLE",
-      floorNumber,
-      title: "Delete Floor Plan?",
-      message: "Are you sure you want to delete this floor plan? This action cannot be undone.",
-      previewText: floorName || `Floor ${floorNumber}`,
-    });
-  };
 
   const triggerDeleteAllMaps = () => {
     setConfirmModal({
       isOpen: true,
       type: "ALL",
       floorNumber: null,
-      title: "Delete All Maps?",
-      message: "Are you sure you want to delete ALL uploaded floor maps? This action cannot be undone.",
-      previewText: "All Configured Floor Schematics",
+      title: "Delete Selected Maps?",
+      message: `Are you sure you want to delete ${selectedMaps.size} selected floor map(s)? This action cannot be undone.`,
+      previewText: "Selected Floor Schematics",
     });
+  };
+
+  const toggleSelectMap = (floorNumber) => {
+    const newSet = new Set(selectedMaps);
+    if (newSet.has(floorNumber)) newSet.delete(floorNumber);
+    else newSet.add(floorNumber);
+    setSelectedMaps(newSet);
+  };
+
+  const toggleSelectAll = (uploadedFloors) => {
+    if (selectedMaps.size === uploadedFloors.length) {
+      setSelectedMaps(new Set());
+    } else {
+      setSelectedMaps(new Set(uploadedFloors.map(f => f.floorNumber)));
+    }
   };
 
   /* ── Modal Callback Handler ── */
   const handleDeleteConfirm = async () => {
-    const { type, floorNumber } = confirmModal;
+    const { type } = confirmModal;
     setConfirmModal((prev) => ({ ...prev, isOpen: false })); // Close modal immediately
 
     try {
-      if (type === "SINGLE") {
-        const data = await api.delete(`/tenants/mine/floors/${floorNumber}/map`);
+      if (type === "ALL") {
+        const data = await api.delete("/tenants/mine/floors/maps/bulk-delete", {
+          method: "DELETE",
+          body: { floorNumbers: Array.from(selectedMaps) }
+        });
         setTenant(data.tenant);
-        toast.success(`Floor ${floorNumber} map deleted`);
-      } else if (type === "ALL") {
-        const data = await api.delete("/tenants/mine/floors/maps/all");
-        setTenant(data.tenant);
-        toast.success("All floor maps have been deleted successfully.");
+        setSelectedMaps(new Set());
+        toast.success(`Selected floor maps have been deleted successfully.`);
       }
     } catch (err) {
       toast.error(err.message);
@@ -245,15 +251,28 @@ function BuildingAdminFloorMaps() {
                 {uploaded.length} of {floors.length} floors
               </span>
 
-              {/* Delete All Button triggers the custom Modal */}
               {uploaded.length > 0 && (
-                <button
-                  onClick={triggerDeleteAllMaps}
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer animate-fade-in"
-                >
-                  <FiTrash2 size={12} />
-                  Delete All
-                </button>
+                <>
+                  <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-50 border border-gray-200 px-3 py-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedMaps.size === uploaded.length}
+                      onChange={() => toggleSelectAll(uploaded)}
+                      className="w-3.5 h-3.5 rounded border-gray-300 text-gold-500 focus:ring-gold-500 cursor-pointer"
+                    />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Select All</span>
+                  </label>
+
+                  {selectedMaps.size > 0 && (
+                    <button
+                      onClick={triggerDeleteAllMaps}
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer animate-fade-in"
+                    >
+                      <FiTrash2 size={12} />
+                      Delete Selected ({selectedMaps.size})
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -268,13 +287,23 @@ function BuildingAdminFloorMaps() {
               {uploaded.map((f) => (
                 <div
                   key={f.floorNumber}
-                  className="border border-gray-200 rounded-lg p-4 bg-slate-50/50 hover:border-gold-400/40 transition-colors flex flex-col justify-between"
+                  className={`border rounded-lg p-4 transition-colors flex flex-col justify-between ${
+                    selectedMaps.has(f.floorNumber) ? "border-gold-400 bg-gold-50/20" : "border-gray-200 bg-slate-50/50 hover:border-gold-400/40"
+                  }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
-                        {f.name || `Floor ${f.floorNumber}`}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedMaps.has(f.floorNumber)}
+                          onChange={() => toggleSelectMap(f.floorNumber)}
+                          className="w-4 h-4 rounded border-gray-300 text-gold-500 focus:ring-gold-500 cursor-pointer"
+                        />
+                        <p className="text-xs uppercase tracking-wider text-slate-600 font-semibold">
+                          {f.name || `Floor ${f.floorNumber}`}
+                        </p>
+                      </div>
                       <div className="flex items-center gap-2">
                         {/* Hidden input for replacing */}
                         <input
@@ -295,13 +324,6 @@ function BuildingAdminFloorMaps() {
                           className="p-1.5 rounded-lg text-gray-500 hover:text-gold-600 hover:bg-gold-50/50 transition-all cursor-pointer"
                         >
                           <FiRefreshCw size={14} />
-                        </button>
-                        <button
-                          onClick={() => triggerDeleteMap(f.floorNumber, f.name)}
-                          title="Delete map"
-                          className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50/50 transition-all cursor-pointer"
-                        >
-                          <FiTrash2 size={14} />
                         </button>
                       </div>
                     </div>

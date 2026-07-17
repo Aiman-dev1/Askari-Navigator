@@ -8,33 +8,33 @@ import { api } from "../lib/api";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 
 /* ── Collapsible FAQ row ── */
-function FaqRow({ item, onDelete }) {
+function FaqRow({ item, isSelected, onToggleSelect }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden transition-all duration-200 hover:border-gold-400/40">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 p-5 text-left bg-white hover:bg-slate-50 transition-colors cursor-pointer"
-      >
-        <div className="flex items-start gap-3 min-w-0">
+    <div className={`border rounded-lg overflow-hidden transition-all duration-200 ${isSelected ? "border-gold-400 bg-gold-50/20" : "border-gray-200 hover:border-gold-400/40"}`}>
+      <div className="w-full flex items-center justify-between p-5 text-left bg-transparent transition-colors">
+        <div className="flex items-start gap-4 min-w-0 flex-1 cursor-pointer" onClick={() => setOpen(!open)}>
+          <div className="mt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => onToggleSelect(item._id)}
+              className="w-4 h-4 rounded border-gray-300 text-gold-500 focus:ring-gold-500 cursor-pointer"
+            />
+          </div>
           <FiHelpCircle size={15} className="text-gold-500 mt-0.5 shrink-0" />
           <span className="text-sm font-semibold text-slate-900 leading-snug">{item.question}</span>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(item._id, item.question); }}
-            className="w-7 h-7 rounded-lg border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
-            aria-label="Delete FAQ"
-          >
-            <FiTrash2 size={12} />
-          </button>
+        <div className="flex items-center gap-3 shrink-0 ml-4">
+          <button onClick={() => setOpen(!open)} className="p-1 cursor-pointer">
           {open
             ? <FiChevronUp size={16} className="text-gray-400" />
             : <FiChevronDown size={16} className="text-gray-400" />
           }
+          </button>
         </div>
-      </button>
+      </div>
 
       {open && (
         <div className="px-5 pb-5 pt-1 bg-slate-50 border-t border-gray-100">
@@ -47,6 +47,7 @@ function FaqRow({ item, onDelete }) {
 
 function BuildingAdminFaqs() {
   const [faqs, setFaqs] = useState([]);
+  const [selectedFaqs, setSelectedFaqs] = useState(new Set());
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
 
@@ -73,27 +74,46 @@ function BuildingAdminFaqs() {
     }
   };
 
-  // Step 1: open the confirm modal
-  const handleDeleteClick = (id, questionText) => {
-    setConfirmModal({ open: true, id, question: questionText });
-  };
-
-  // Step 2: user confirmed — actually delete
+  // user confirmed — actually delete
   const handleDeleteConfirm = async () => {
-    const { id } = confirmModal;
     setConfirmModal({ open: false, id: null, question: "" });
     try {
-      await api.delete(`/faqs/${id}`);
-      setFaqs(faqs.filter((item) => item._id !== id));
-      toast.success("FAQ deleted");
+      const ids = Array.from(selectedFaqs);
+      await api.post("/faqs/bulk-delete", { ids });
+      setFaqs(faqs.filter((item) => !selectedFaqs.has(item._id)));
+      setSelectedFaqs(new Set());
+      toast.success(`${ids.length} FAQ(s) deleted`);
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  // Step 3: user cancelled
+  // user cancelled
   const handleDeleteCancel = () => {
     setConfirmModal({ open: false, id: null, question: "" });
+  };
+
+  const toggleSelectFaq = (id) => {
+    const newSet = new Set(selectedFaqs);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedFaqs(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedFaqs.size === faqs.length) {
+      setSelectedFaqs(new Set());
+    } else {
+      setSelectedFaqs(new Set(faqs.map(f => f._id)));
+    }
+  };
+
+  const deleteSelected = () => {
+    if (selectedFaqs.size === 0) return;
+    setConfirmModal({
+      open: true,
+      question: `${selectedFaqs.size} selected FAQ(s)`
+    });
   };
 
   return (
@@ -101,9 +121,9 @@ function BuildingAdminFaqs() {
       {/* Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={confirmModal.open}
-        title="Delete FAQ?"
-        message="Are you sure you want to delete this FAQ entry? This action cannot be undone."
-        previewLabel="FAQ Question"
+        title="Delete FAQs?"
+        message={`Are you sure you want to delete ${selectedFaqs.size} selected FAQ(s)? This action cannot be undone.`}
+        previewLabel="Target"
         previewText={confirmModal.question}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
@@ -181,7 +201,7 @@ function BuildingAdminFaqs() {
         <div className="bg-white border border-gray-200/60 shadow-md rounded-lg p-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gold-400/40" />
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-600 shrink-0">
                 <FiHelpCircle size={16} />
@@ -190,9 +210,36 @@ function BuildingAdminFaqs() {
                 Current Listings
               </h2>
             </div>
-            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">
-              {faqs.length} {faqs.length === 1 ? "entry" : "entries"}
-            </span>
+            
+            <div className="flex items-center gap-3">
+              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-full">
+                {faqs.length} {faqs.length === 1 ? "entry" : "entries"}
+              </span>
+
+              {faqs.length > 0 && (
+                <>
+                  <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-50 border border-gray-200 px-3 py-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedFaqs.size === faqs.length}
+                      onChange={toggleSelectAll}
+                      className="w-3.5 h-3.5 rounded border-gray-300 text-gold-500 focus:ring-gold-500 cursor-pointer"
+                    />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Select All</span>
+                  </label>
+
+                  {selectedFaqs.size > 0 && (
+                    <button
+                      onClick={deleteSelected}
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-1.5 rounded-full border border-red-200 transition-all cursor-pointer animate-fade-in"
+                    >
+                      <FiTrash2 size={12} />
+                      Delete Selected ({selectedFaqs.size})
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {faqs.length === 0 ? (
@@ -203,7 +250,12 @@ function BuildingAdminFaqs() {
           ) : (
             <div className="flex flex-col gap-3">
               {faqs.map((item) => (
-                <FaqRow key={item._id} item={item} onDelete={handleDeleteClick} />
+                <FaqRow
+                  key={item._id}
+                  item={item}
+                  isSelected={selectedFaqs.has(item._id)}
+                  onToggleSelect={toggleSelectFaq}
+                />
               ))}
             </div>
           )}

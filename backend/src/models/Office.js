@@ -15,6 +15,11 @@ const officeSchema = new mongoose.Schema(
     },
     // Step-by-step wayfinding instructions
     directions: [{ type: String }],
+    status: {
+      type: String,
+      enum: ["Occupied", "Vacant"],
+      default: "Occupied",
+    },
   },
   { timestamps: true }
 );

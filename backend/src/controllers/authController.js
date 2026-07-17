@@ -1,6 +1,7 @@
 import Tenant from "../models/Tenant.js";
 import User from "../models/User.js";
 import { signToken } from "../utils/jwt.js";
+import { logActivity } from "../utils/activityLogger.js";
 
 function publicUser(user) {
   return {
@@ -55,6 +56,9 @@ export async function register(req, res, next) {
     const user = new User({ tenantId: tenant._id, username, email, role: "user" });
     await user.setPassword(password);
     await user.save();
+
+    req.user = { sub: user._id, tenantId: user.tenantId, username: user.username, role: user.role };
+    logActivity(req, "NEW_USER", `New user registered: ${user.username}`);
 
     res.status(201).json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {
@@ -127,6 +131,9 @@ export async function guest(req, res, next) {
       role: "user",
       isGuest: true,
     });
+
+    req.user = { sub: user._id, tenantId: user.tenantId, username: user.username, role: user.role };
+    logActivity(req, "NEW_USER", `Temporary guest joined: ${user.username}`);
 
     res.status(201).json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {

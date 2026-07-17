@@ -206,3 +206,38 @@ export async function deleteFloorMap(req, res, next) {
     next(err);
   }
 }
+
+// DELETE /api/v1/tenants/mine/floors/maps/bulk-delete  (tenant admin)
+export async function bulkDeleteFloorMaps(req, res, next) {
+  try {
+    const { floorNumbers } = req.body;
+    if (!Array.isArray(floorNumbers) || floorNumbers.length === 0) {
+      return res.status(400).json({ error: "floorNumbers must be a non-empty array" });
+    }
+
+    const tenant = await Tenant.findById(req.user.tenantId);
+    if (!tenant) return res.status(404).json({ error: "Tenant not found" });
+
+    let deletedCount = 0;
+    tenant.floors.forEach((floor) => {
+      if (floorNumbers.includes(floor.floorNumber) && floor.mapUrl) {
+        floor.mapUrl = null;
+        deletedCount++;
+      }
+    });
+
+    if (deletedCount > 0) {
+      await tenant.save();
+      logActivity(
+        req,
+        "FLOOR_MAPS_BULK_DELETED",
+        `Bulk deleted ${deletedCount} floor maps`,
+        { resourceType: "tenant", resourceId: tenant._id }
+      );
+    }
+
+    res.json({ deletedCount, tenant });
+  } catch (err) {
+    next(err);
+  }
+}

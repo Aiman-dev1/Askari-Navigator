@@ -180,6 +180,15 @@ function Chat() {
     getSocket().emit("cancel_match", () => setMatching(false));
   };
 
+  const reportMessage = async (msgId) => {
+    try {
+      await api.post(`/chat/messages/${msgId}/report`);
+      toast.success("Message reported to administration");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const isMine = (msg) => msg.senderId === user?.id;
 
   return (
@@ -265,11 +274,21 @@ function Chat() {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`mb-4 max-w-[80%] flex flex-col ${isMine(msg) ? "ml-auto items-end" : "mr-auto items-start"}`}
+                  className={`mb-4 max-w-[80%] flex flex-col group ${isMine(msg) ? "ml-auto items-end" : "mr-auto items-start"}`}
                 >
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">
-                    {isMine(msg) ? "You" : msg.sender}
-                  </span>
+                  <div className="flex items-center gap-3 mb-1 px-1">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                      {isMine(msg) ? "You" : msg.sender}
+                    </span>
+                    {!isMine(msg) && (
+                      <button
+                        onClick={() => reportMessage(msg.id)}
+                        className="opacity-0 group-hover:opacity-100 text-[9px] text-red-500 font-bold uppercase tracking-widest hover:underline transition-opacity cursor-pointer"
+                      >
+                        Report
+                      </button>
+                    )}
+                  </div>
 
                   <div
                     className={`px-4 py-3 rounded text-sm leading-relaxed ${

@@ -9,6 +9,7 @@ import {
   updateMyFloors,
   uploadFloorMap,
   deleteFloorMap,
+  bulkDeleteFloorMaps,
 } from "../controllers/tenantController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { uploadFloorPlan } from "../middleware/upload.js";
@@ -28,6 +29,13 @@ router.post(
   uploadFloorPlan.single("map"),
   uploadFloorMap
 );
+router.delete(
+  "/mine/floors/maps/bulk-delete",
+  requireAuth,
+  requireRole("tenant_admin"),
+  bulkDeleteFloorMaps
+);
+
 router.delete(
   "/mine/floors/:floorNumber/map",
   requireAuth,

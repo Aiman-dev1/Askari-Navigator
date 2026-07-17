@@ -26,6 +26,7 @@ export async function getSubscription(req, res, next) {
     if (!tenant) return res.status(404).json({ error: "Tenant not found" });
     res.json({
       plan: tenant.plan,
+      nextPlan: tenant.nextPlan,
       subscriptionStatus: tenant.subscriptionStatus,
       currentPeriodEnd: tenant.currentPeriodEnd,
       stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
@@ -50,6 +51,13 @@ export async function createCheckout(req, res, next) {
     if (!tenant) return res.status(404).json({ error: "Tenant not found" });
 
     if (!stripe) {
+      if (tenant.subscriptionStatus === "Active" && tenant.plan !== plan.id) {
+        tenant.nextPlan = plan.id;
+        await tenant.save();
+        logActivity(req, "BUILDING_STATUS_CHANGED", `Plan change to ${plan.name} scheduled for next cycle`, { resourceType: "tenant", resourceId: tenant._id });
+        return res.json({ success: true, message: "Plan change scheduled for next billing cycle" });
+      }
+
       // Mock successful checkout with billing data validation
       if (billingData) {
         // Validate required billing fields
@@ -62,6 +70,7 @@ export async function createCheckout(req, res, next) {
 
       // Update tenant subscription
       tenant.plan = plan.id;
+      tenant.nextPlan = null;
       tenant.subscriptionStatus = "Active";
       tenant.currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
       await tenant.save();
@@ -69,6 +78,39 @@ export async function createCheckout(req, res, next) {
       logActivity(req, "BUILDING_STATUS_CHANGED", `Subscribed to ${plan.name} plan`, { resourceType: "tenant", resourceId: tenant._id });
 
       return res.json({ success: true, message: "Subscription activated" });
+    }
+
+    if (tenant.subscriptionStatus === "Active" && tenant.stripeSubscriptionId && stripe) {
+      const subscription = await stripe.subscriptions.retrieve(tenant.stripeSubscriptionId);
+      let scheduleId = subscription.schedule;
+      
+      if (!scheduleId) {
+        const schedule = await stripe.subscriptionSchedules.create({
+          from_subscription: subscription.id,
+        });
+        scheduleId = schedule.id;
+      }
+      
+      const schedule = await stripe.subscriptionSchedules.retrieve(scheduleId);
+      
+      await stripe.subscriptionSchedules.update(scheduleId, {
+        phases: [
+          {
+            start_date: schedule.phases[0].start_date,
+            end_date: schedule.phases[0].end_date,
+            items: schedule.phases[0].items.map(item => ({ price: item.price, quantity: item.quantity })),
+          },
+          {
+            items: [{ price: plan.priceId, quantity: 1 }],
+          }
+        ]
+      });
+
+      tenant.nextPlan = plan.id;
+      await tenant.save();
+      logActivity(req, "BUILDING_STATUS_CHANGED", `Plan change to ${plan.name} scheduled for next cycle`, { resourceType: "tenant", resourceId: tenant._id });
+      
+      return res.json({ success: true, message: "Plan change scheduled for next billing cycle", url: `${clientUrl}/building-admin` });
     }
 
     if (!plan.priceId) {

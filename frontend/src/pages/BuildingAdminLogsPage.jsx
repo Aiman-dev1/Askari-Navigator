@@ -16,6 +16,7 @@ const ACTION_META = {
   NAVIGATION_SEARCH: { label: "Navigation Search", color: "bg-slate-100 text-slate-600", dot: "bg-slate-400" },
   DIRECTIONS_VIEWED: { label: "Directions Viewed", color: "bg-sky-100 text-sky-700", dot: "bg-sky-400" },
   NEW_USER: { label: "User / Guest Joined", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-400" },
+  SECURITY_ALERT: { label: "Security Alert", color: "bg-red-100 text-red-700 font-bold", dot: "bg-red-500 animate-pulse" },
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META);
@@ -86,7 +87,7 @@ function BuildingAdminLogsPage() {
 
     const socket = getSocket();
     socket.on("new_log", (newLog) => {
-      if (newLog.actorRole === "user" || newLog.action === "NEW_USER") {
+      if (newLog.actorRole === "user" || newLog.actorRole === "guest" || newLog.action === "NEW_USER" || newLog.action === "SECURITY_ALERT") {
         setLogs((prev) => {
           if (prev.some(p => p._id === newLog._id)) return prev;
           return [newLog, ...prev];

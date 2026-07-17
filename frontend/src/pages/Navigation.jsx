@@ -68,6 +68,13 @@ function Navigation() {
     return () => clearTimeout(t);
   }, [search, floorFilter, runSearch]);
 
+  // Log when a user views directions for an office
+  useEffect(() => {
+    if (selected) {
+      api.get(`/navigation/directions/${selected._id}`).catch(() => {});
+    }
+  }, [selected]);
+
   const floorLabel = (n) =>
     floors.find((f) => f.floorNumber === n)?.name || `Floor ${n}`;
 

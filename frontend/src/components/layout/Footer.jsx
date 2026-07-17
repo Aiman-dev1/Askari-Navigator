@@ -2,7 +2,7 @@ import { FaFacebookF, FaInstagram, FaLinkedinIn, FaGithub } from "react-icons/fa
 
 function Footer() {
   return (
-    <footer className="bg-slate-950 text-white py-12 border-t border-gold-400/10">
+    <footer className="relative z-[60] bg-slate-950 text-white py-12 border-t border-gold-400/10">
 
       <div className="max-w-7xl mx-auto px-6">
 
