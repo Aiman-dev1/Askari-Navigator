@@ -44,6 +44,7 @@ Seed once from Render's shell: `node src/seed.js`.
 
 **3. Vercel (frontend)** — import the repo:
 - Root directory: `frontend` · Framework preset: Vite
+- The `frontend/vercel.json` file is already included to ensure React Router works correctly and prevents 404 errors on page refresh.
 - Environment variables: `VITE_API_URL=https://<your-render-service>.onrender.com`,
   `VITE_TENANT_SLUG=apex-tower`
 
